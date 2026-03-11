@@ -1,6 +1,7 @@
 // Load environment variables
 require("dotenv").config();
 
+const DefaultTarget = require("../shared/defaultTarget.json");
 const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
@@ -55,11 +56,11 @@ app.get("/api/ipcr/:userId", (req, res) => {
     if (err) return res.status(500).json({ error: err.message });
 
     const ipcrData = {
-      syllabus: { target: 4, accomplished: 0, submitted: null },
-      courseGuide: { target: 4, accomplished: 0, submitted: null },
-      slm: { target: 10, accomplished: 0, submitted: null },
-      gradingSheet: { target: 0, accomplished: 0, submitted: null },
-      tos: { target: 0, accomplished: 0, submitted: null },
+      syllabus: { target: DefaultTarget.syllabus, accomplished: 0, submitted: null },
+      courseGuide: { target: DefaultTarget.courseGuide, accomplished: 0, submitted: null },
+      slm: { target: DefaultTarget.slm, accomplished: 0, submitted: null },
+      gradingSheet: { target: DefaultTarget.gradingSheet, accomplished: 0, submitted: null },
+      tos: { target: DefaultTarget.tos, accomplished: 0, submitted: null },
     };
 
     // One row per category: prefer row with rating (e.g. from saveIPCR)

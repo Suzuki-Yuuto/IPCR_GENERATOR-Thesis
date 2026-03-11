@@ -2,13 +2,14 @@
  * IPCR Calculation Service
  * Handles all rating computations before saving to database
  */
+const DefaultTarget = require("../shared/defaultTarget.json");
 
 const DEFAULT_TARGETS = {
-  syllabus: 5,
-  courseGuide: 5,
-  slm: 5,
-  tos: 5,
-  gradingSheet: 5
+  syllabus: DefaultTarget.syllabus,
+  courseGuide: DefaultTarget.courseGuide,
+  slm: DefaultTarget.slm,
+  tos: DefaultTarget.tos,
+  gradingSheet: DefaultTarget.gradingSheet
 };
 
 const WEIGHTS = {

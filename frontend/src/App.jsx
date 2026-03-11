@@ -3,6 +3,7 @@ import { Upload, FileText, BarChart3, User, LogOut, Home, Shield, CheckCircle, C
 
 const API_URL = 'http://localhost:3001/api';
 
+import DefaultTarget from '../../shared/defaultTarget.json';
 const App = () => {
   // --- STATE MANAGEMENT ---
   const [user, setUser] = useState(null);
@@ -12,11 +13,11 @@ const App = () => {
   const [isUploading, setIsUploading] = useState(false);
   
   const [ipcrData, setIpcrData] = useState({
-    syllabus: { target: 4, accomplished: 0, submitted: null },
-    courseGuide: { target: 4, accomplished: 0, submitted: null },
-    slm: { target: 10, accomplished: 0, submitted: null },
-    gradingSheet: { target: 0, accomplished: 0, submitted: null },
-    tos: { target: 0, accomplished: 0, submitted: null }
+    syllabus: { target: DefaultTarget.syllabus, accomplished: 0, submitted: null },
+    courseGuide: { target: DefaultTarget.courseGuide, accomplished: 0, submitted: null },
+    slm: { target: DefaultTarget.slm, accomplished: 0, submitted: null },
+    gradingSheet: { target: DefaultTarget.gradingSheet, accomplished: 0, submitted: null },
+    tos: { target: DefaultTarget.tos, accomplished: 0, submitted: null }
   });
   
   const [uploadedFiles, setUploadedFiles] = useState([]);
@@ -39,7 +40,10 @@ const App = () => {
       try {
         const userData = JSON.parse(decodeURIComponent(userParam));
         setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
+        // Persist login only for the current browser session
+        sessionStorage.setItem('user', JSON.stringify(userData));
+        // Cleanup any older persistent login from previous builds
+        localStorage.removeItem('user');
         window.history.replaceState({}, document.title, '/');
         
         // Initial Data Fetch
@@ -54,8 +58,17 @@ const App = () => {
         console.error('Error parsing user data:', e);
       }
     } else {
-      // Check localStorage for existing user
-      const savedUser = localStorage.getItem('user');
+      // Check sessionStorage for existing user (clears on browser close)
+      let savedUser = sessionStorage.getItem('user');
+      // Migration: if older builds stored user persistently, move it into sessionStorage once.
+      if (!savedUser) {
+        const legacyUser = localStorage.getItem('user');
+        if (legacyUser) {
+          sessionStorage.setItem('user', legacyUser);
+          localStorage.removeItem('user');
+          savedUser = legacyUser;
+        }
+      }
       if (savedUser) {
         const userData = JSON.parse(savedUser);
         setUser(userData);
@@ -177,7 +190,8 @@ const App = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('user');
+    localStorage.removeItem('user'); // extra safety for any legacy key
     setUser(null);
     setCurrentPage('login');
   };
