@@ -9,10 +9,9 @@ const TEMPLATE_PATH = path.resolve(__dirname, "Template.xlsx");
 
 /**
  * 1. EASY CONFIGURATION AREA
- *
- * Only two mapping objects are used:
- *   - META_DATA_MAPPING  — user/meta info mapped to specific cells
- *   - CELL_MAPPING       — per-category IPCR data mapped to specific cells
+ * * - dateCell: The cell in the Excel template for the primary date (usually Column D).
+ * - dateType: Choose "start" or "end" to decide which DB column to pull into the dateCell.
+ * - submissionDate: The cell for the actual date the file was submitted (assigned to Column E).
  */
 
 const META_DATA_MAPPING = [
@@ -22,11 +21,11 @@ const META_DATA_MAPPING = [
 ];
 
 const CELL_MAPPING = {
-  syllabus:     { target: "B19", accomplished: "C19", Q: "F19", E: "G19", T: "H19", rating: "I19", dateCell: "D19", folderLink: "J19" },
-  courseGuide:  { target: "B20", accomplished: "C20", Q: "F20", E: "G20", T: "H20", rating: "I20", dateCell: "D20", folderLink: "J20" },
-  slm:          { target: "B21", accomplished: "C21", Q: "F21", E: "G21", T: "H21", rating: "I21", dateCell: "D21", folderLink: "J21" },
-  tos:          { target: "B30", accomplished: "C30", Q: "F30", E: "G30", T: "H30", rating: "I30", dateCell: "D30", folderLink: "J30" },
-  gradingSheet: { target: "B34", accomplished: "C34", Q: "F34", E: "G34", T: "H34", rating: "I34", dateCell: "D34", folderLink: "J34" },
+  syllabus:     { target: "B19", accomplished: "C19", Q: "F19", E: "G19", T: "H19", rating: "I19", dateCell: "D19", dateType: "start", submissionDate: "E19", folderLink: "J19" },
+  courseGuide:  { target: "B20", accomplished: "C20", Q: "F20", E: "G20", T: "H20", rating: "I20", dateCell: "D20", dateType: "start", submissionDate: "E20", folderLink: "J20" },
+  slm:          { target: "B21", accomplished: "C21", Q: "F21", E: "G21", T: "H21", rating: "I21", dateCell: "D21", dateType: "start", submissionDate: "E21", folderLink: "J21" },
+  tos:          { target: "B30", accomplished: "C30", Q: "F30", E: "G30", T: "H30", rating: "I30", dateCell: "D30", dateType: "end", submissionDate: "E30", folderLink: "J30" },
+  gradingSheet: { target: "B34", accomplished: "C34", Q: "F34", E: "G34", T: "H34", rating: "I34", dateCell: "D34", dateType: "end", submissionDate: "E34", folderLink: "J34" },
 };
 
 const DB_CATEGORY_TO_KEY = {
@@ -35,10 +34,6 @@ const DB_CATEGORY_TO_KEY = {
 
 /**
  * Export IPCR data to Excel for a specific academic period.
- *
- * @param {string|number} userId
- * @param {string}        [academicYear]  - e.g. "2025-2026"
- * @param {string}        [semester]       - e.g. "1st Semester"
  */
 async function exportIPCRToExcel(userId, academicYear, semester) {
   const workbook = new ExcelJS.Workbook();
@@ -62,7 +57,7 @@ async function exportIPCRToExcel(userId, academicYear, semester) {
     activeSem  = activeSem  || config.semester;
   }
 
-  // 2. FETCH USER DETAILS (prefer user_profiles then users)
+  // 2. FETCH USER DETAILS
   const user = await new Promise((resolve, reject) => {
     db.get(
       `SELECT u.*, COALESCE(up.name, u.name) as display_name,
@@ -76,7 +71,7 @@ async function exportIPCRToExcel(userId, academicYear, semester) {
     );
   });
 
-  // 3. FETCH IPCR RECORDS (scoped to year + semester)
+  // 3. FETCH IPCR RECORDS
   const rows = await new Promise((resolve, reject) => {
     db.all(
       `SELECT category, target, accomplished, q_score, e_score, t_score, rating,
@@ -89,7 +84,7 @@ async function exportIPCRToExcel(userId, academicYear, semester) {
     );
   });
 
-  // 4. FILL CUSTOM META DATA — only insert values, do NOT change formatting
+  // 4. FILL CUSTOM META DATA
   if (user) {
     const metaUser = { name: user.display_name || user.name, department: user.display_department || user.department };
     META_DATA_MAPPING.forEach(item => {
@@ -101,7 +96,7 @@ async function exportIPCRToExcel(userId, academicYear, semester) {
     });
   }
 
-  // 5. FILL CATEGORY DATA — only insert values, do NOT change formatting
+  // 5. FILL CATEGORY DATA
   const byKey = {};
   rows.forEach((r) => {
     const key = DB_CATEGORY_TO_KEY[r.category];
@@ -123,15 +118,21 @@ async function exportIPCRToExcel(userId, academicYear, semester) {
     worksheet.getCell(map.T).value = r?.t_score != null ? Number(r.t_score) : computed.T;
     worksheet.getCell(map.rating).value = r?.rating != null ? Number(r.rating) : computed.rating;
 
-    // Fill start/end date into column D (use start_date, fallback to end_date)
+    // --- LOGIC: PER-CATEGORY PRIMARY DATE (Start vs End) ---
     if (map.dateCell) {
-      const dateVal = r?.start_date || r?.end_date || r?.submission_date || "";
-      if (dateVal) {
-        worksheet.getCell(map.dateCell).value = dateVal;
+      // If dateType is "end", use end_date. Otherwise, default to start_date.
+      const selectedDate = map.dateType === "end" ? r?.end_date : r?.start_date;
+      if (selectedDate) {
+        worksheet.getCell(map.dateCell).value = selectedDate;
       }
     }
 
-    // Fill Google Drive folder link into column J — value only, no formatting changes
+    // --- LOGIC: SUBMISSION DATE ---
+    if (map.submissionDate && r?.submission_date) {
+      worksheet.getCell(map.submissionDate).value = r.submission_date;
+    }
+
+    // --- LOGIC: FOLDER LINK ---
     if (map.folderLink && r?.folder_link) {
       worksheet.getCell(map.folderLink).value = r.folder_link;
     }
