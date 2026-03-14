@@ -208,13 +208,14 @@ const App = () => {
 
   const exportToExcel = async () => {
     try {
-      const res = await fetch(`${API_URL}/ipcr/export/${user.id}`);
+      const params = new URLSearchParams({ year: selectedYear, semester: selectedSemester });
+      const res = await fetch(`${API_URL}/ipcr/export/${user.id}?${params}`);
       if (!res.ok) throw new Error('Export failed');
       const blob = await res.blob();
       const url  = window.URL.createObjectURL(blob);
       const a    = document.createElement('a');
       a.href     = url;
-      a.download = `IPCR_${user.name.replace(/\s+/g, '_')}_${Date.now()}.xlsx`;
+      a.download = `IPCR_${user.name.replace(/\s+/g, '_')}_${selectedYear}_${selectedSemester}_${Date.now()}.xlsx`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);

@@ -17,6 +17,23 @@ class GoogleDriveService {
   }
 
   /**
+   * Set "anyone with the link can view" permission on a file or folder.
+   */
+  async setPublicPermission(fileId) {
+    try {
+      await this.drive.permissions.create({
+        fileId,
+        requestBody: {
+          role: 'reader',
+          type: 'anyone',
+        },
+      });
+    } catch (error) {
+      console.warn('Could not set public permission:', error.message);
+    }
+  }
+
+  /**
    * Find or create a folder by name under an optional parent.
    */
   async findOrCreateFolder(folderName, parentId = null) {
@@ -47,6 +64,9 @@ class GoogleDriveService {
         fields: 'id, name, webViewLink'
       });
 
+      // Make newly created folder publicly viewable via link
+      await this.setPublicPermission(folder.data.id);
+
       return folder.data;
     } catch (error) {
       console.error('Error finding/creating folder:', error);
@@ -66,20 +86,34 @@ class GoogleDriveService {
    * @param {string} [academicYear] - e.g. "2025-2026"
    * @param {string} [semester]     - e.g. "1st Semester"
    * @param {string} [facultyName]  - uploader's display name
+   * @returns {{ fileId, fileName, webViewLink, webContentLink, folderPath, categoryFolderLinks }}
    */
   async uploadFile(filePath, fileName, category, academicYear = '2025-2026', semester = '1st Semester', facultyName = 'Faculty') {
     try {
-      // Build hierarchy: IPCR → year → semester → faculty → category
+      // Build hierarchy: IPCR → year → semester → faculty
       const ipcrFolder    = await this.findOrCreateFolder('IPCR');
       const yearFolder    = await this.findOrCreateFolder(academicYear, ipcrFolder.id);
       const semFolder     = await this.findOrCreateFolder(semester, yearFolder.id);
       const facultyFolder = await this.findOrCreateFolder(facultyName, semFolder.id);
-      const catFolder     = await this.findOrCreateFolder(category, facultyFolder.id);
+
+      // Create/find ALL 5 category folders under the faculty folder
+      const categories = ['Syllabus', 'Course Guide', 'SLM', 'Grading Sheet', 'TOS'];
+      const categoryFolderLinks = {};
+
+      for (const cat of categories) {
+        const folder = await this.findOrCreateFolder(cat, facultyFolder.id);
+        const key = cat.replace(/\s+/g, '').toLowerCase(); // e.g. "courseguide"
+        categoryFolderLinks[key] = folder.webViewLink || `https://drive.google.com/drive/folders/${folder.id}`;
+      }
+
+      // Find the correct category folder for upload (already created above)
+      const catKey = category.replace(/\s+/g, '').toLowerCase();
+      const targetCatFolder = await this.findOrCreateFolder(category, facultyFolder.id);
 
       // Upload file
       const fileMetadata = {
         name: fileName,
-        parents: [catFolder.id]
+        parents: [targetCatFolder.id]
       };
 
       const media = {
@@ -93,6 +127,9 @@ class GoogleDriveService {
         fields: 'id, name, webViewLink, webContentLink'
       });
 
+      // Make the uploaded file publicly viewable via link
+      await this.setPublicPermission(file.data.id);
+
       const folderPath = `IPCR/${academicYear}/${semester}/${facultyName}/${category}`;
       console.log(`✅ Uploaded to Google Drive: ${file.data.name}`);
       console.log(`   Path: ${folderPath}`);
@@ -103,7 +140,8 @@ class GoogleDriveService {
         fileName: file.data.name,
         webViewLink: file.data.webViewLink,
         webContentLink: file.data.webContentLink,
-        folderPath
+        folderPath,
+        categoryFolderLinks
       };
     } catch (error) {
       console.error('Error uploading to Google Drive:', error.message);

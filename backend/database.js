@@ -114,8 +114,29 @@ db.serialize(() => {
       start_date DATE,
       end_date DATE,
 
+      folder_link TEXT,
+
       FOREIGN KEY (user_id) REFERENCES users(id),
       UNIQUE(user_id, category, academic_year, semester)
+    )
+  `);
+
+
+  /**
+   * USER PROFILES TABLE
+   * Stores locally-editable profile information (not from Google).
+   */
+  db.run(`
+    CREATE TABLE IF NOT EXISTS user_profiles (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER UNIQUE NOT NULL,
+      name TEXT,
+      department TEXT,
+      position TEXT,
+      contact_number TEXT,
+      notes TEXT,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id)
     )
   `);
 
@@ -146,6 +167,9 @@ db.serialize(() => {
   // New semester date columns
   addColumnIfMissing('ipcr_records', 'start_date', 'DATE');
   addColumnIfMissing('ipcr_records', 'end_date',   'DATE');
+
+  // Google Drive folder link column (one per category row)
+  addColumnIfMissing('ipcr_records', 'folder_link', 'TEXT');
 
   /**
    * SEED: default semester_config if none exists

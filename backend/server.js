@@ -45,10 +45,10 @@ const categoryMap = {
 function getActiveConfig() {
   return new Promise((resolve) => {
     db.get(
-      `SELECT academic_year, semester FROM semester_config WHERE is_active = 1 ORDER BY id DESC LIMIT 1`,
+      `SELECT academic_year, semester, start_date, end_date FROM semester_config WHERE is_active = 1 ORDER BY id DESC LIMIT 1`,
       (err, row) => {
         if (err || !row) {
-          resolve({ academic_year: "2025-2026", semester: "1st Semester" });
+          resolve({ academic_year: "2025-2026", semester: "1st Semester", start_date: null, end_date: null });
         } else {
           resolve(row);
         }
@@ -272,6 +272,18 @@ app.post("/api/documents/upload", upload.array("files"), async (req, res) => {
 
         await saveIPCR(userId, dbCategory, accomplished, target, academicYear, semester);
 
+        // Store the category-specific folder link on this category's ipcr_record row
+        if (driveResult && driveResult.categoryFolderLinks) {
+          const catKey = dbCategory.replace(/\s+/g, '').toLowerCase();
+          const folderLink = driveResult.categoryFolderLinks[catKey] || null;
+          if (folderLink) {
+            db.run(
+              `UPDATE ipcr_records SET folder_link = ? WHERE user_id = ? AND category = ? AND academic_year = ? AND semester = ?`,
+              [folderLink, userId, dbCategory, academicYear, semester]
+            );
+          }
+        }
+
         results.push({ filename: file.originalname, category: dbCategory, confidence, driveLink, driveUploaded });
 
         await fs.remove(file.path);
@@ -319,10 +331,18 @@ app.get("/api/documents/:userId", async (req, res) => {
 // EXCEL EXPORT
 // ──────────────────────────────────────────────────────────────────────────────
 
+/**
+ * GET /api/ipcr/export/:userId
+ * Optional query params: ?year=&semester=
+ */
 app.get("/api/ipcr/export/:userId", async (req, res) => {
   try {
     const { exportIPCRToExcel } = require("./utils/excelExport");
-    const buffer = await exportIPCRToExcel(req.params.userId);
+    const active = await getActiveConfig();
+    const academicYear = req.query.year     || active.academic_year;
+    const semester     = req.query.semester || active.semester;
+
+    const buffer = await exportIPCRToExcel(req.params.userId, academicYear, semester);
 
     res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     res.setHeader("Content-Disposition", `attachment; filename=IPCR_${req.params.userId}_${Date.now()}.xlsx`);
@@ -331,6 +351,85 @@ app.get("/api/ipcr/export/:userId", async (req, res) => {
     console.error("Excel export error:", err);
     res.status(500).json({ error: "Failed to generate Excel file" });
   }
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// USER PROFILE ROUTES
+// ──────────────────────────────────────────────────────────────────────────────
+
+/**
+ * GET /api/profile/:userId
+ * Returns locally-editable profile (falls back to users table data).
+ */
+app.get("/api/profile/:userId", (req, res) => {
+  const userId = parseInt(req.params.userId, 10) || req.params.userId;
+
+  // First try user_profiles, then fall back to users
+  db.get(
+    `SELECT up.name, up.department, up.position, up.contact_number, up.notes, up.updated_at,
+            u.email, u.profile_image, u.role
+     FROM users u
+     LEFT JOIN user_profiles up ON u.id = up.user_id
+     WHERE u.id = ?`,
+    [userId],
+    (err, row) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (!row) return res.status(404).json({ error: "User not found" });
+
+      // If no profile row exists yet, use data from users table
+      db.get(`SELECT name, department FROM users WHERE id = ?`, [userId], (err2, userRow) => {
+        if (err2) return res.status(500).json({ error: err2.message });
+
+        res.json({
+          name: row.name || (userRow && userRow.name) || '',
+          department: row.department || (userRow && userRow.department) || '',
+          position: row.position || '',
+          contact_number: row.contact_number || '',
+          notes: row.notes || '',
+          email: row.email || '',
+          profile_image: row.profile_image || '',
+          role: row.role || 'professor',
+          updated_at: row.updated_at || null,
+        });
+      });
+    }
+  );
+});
+
+/**
+ * PUT /api/profile/:userId
+ * Upserts locally-editable profile fields.
+ * Body: { name, department, position, contact_number, notes }
+ */
+app.put("/api/profile/:userId", (req, res) => {
+  const userId = parseInt(req.params.userId, 10) || req.params.userId;
+  const { name, department, position, contact_number, notes } = req.body;
+
+  const upsertSql = `
+    INSERT INTO user_profiles (user_id, name, department, position, contact_number, notes, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    ON CONFLICT(user_id) DO UPDATE SET
+      name = excluded.name,
+      department = excluded.department,
+      position = excluded.position,
+      contact_number = excluded.contact_number,
+      notes = excluded.notes,
+      updated_at = CURRENT_TIMESTAMP
+  `;
+
+  db.run(upsertSql, [userId, name || null, department || null, position || null, contact_number || null, notes || null], function (err) {
+    if (err) return res.status(500).json({ error: err.message });
+
+    // Also update the users table name and department so it reflects everywhere
+    db.run(
+      `UPDATE users SET name = COALESCE(?, name), department = COALESCE(?, department) WHERE id = ?`,
+      [name || null, department || null, userId],
+      (err2) => {
+        if (err2) console.error("Error syncing users table:", err2.message);
+        res.json({ success: true, message: "Profile updated successfully" });
+      }
+    );
+  });
 });
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -362,6 +461,85 @@ app.get("/api/admin/ipcr", async (req, res) => {
   db.all(query, [academicYear, semester, academicYear, semester], (err, rows) =>
     err ? res.status(500).json({ error: err.message }) : res.json(rows)
   );
+});
+
+/**
+ * GET /api/admin/faculty/:userId
+ * Admin detail view for a specific faculty member.
+ * Returns profile info, folder links, and documents for the selected period.
+ * Optional query params: ?year=&semester=
+ */
+app.get("/api/admin/faculty/:userId", async (req, res) => {
+  const userId = parseInt(req.params.userId, 10) || req.params.userId;
+  const active = await getActiveConfig();
+  const academicYear = req.query.year     || active.academic_year;
+  const semester     = req.query.semester || active.semester;
+
+  try {
+    // 1. Profile info (from user_profiles + users)
+    const profile = await new Promise((resolve, reject) => {
+      db.get(
+        `SELECT u.id, u.email, u.profile_image, u.role,
+                COALESCE(up.name, u.name) as name,
+                COALESCE(up.department, u.department) as department,
+                up.position, up.contact_number, up.notes
+         FROM users u
+         LEFT JOIN user_profiles up ON u.id = up.user_id
+         WHERE u.id = ?`,
+        [userId],
+        (err, row) => (err ? reject(err) : resolve(row))
+      );
+    });
+
+    if (!profile) return res.status(404).json({ error: "Faculty not found" });
+
+    // 2. Folder links — one per category row
+    const folderLinkRows = await new Promise((resolve, reject) => {
+      db.all(
+        `SELECT category, folder_link
+         FROM ipcr_records
+         WHERE user_id = ? AND academic_year = ? AND semester = ? AND folder_link IS NOT NULL`,
+        [userId, academicYear, semester],
+        (err, rows) => (err ? reject(err) : resolve(rows || []))
+      );
+    });
+
+    // Map DB category names to keys
+    const categoryKeyMap = { Syllabus: 'syllabus', 'Course Guide': 'courseGuide', SLM: 'slm', 'Grading Sheet': 'gradingSheet', TOS: 'tos' };
+    const folderLinks = {};
+    folderLinkRows.forEach(row => {
+      const key = categoryKeyMap[row.category];
+      if (key) folderLinks[key] = row.folder_link;
+    });
+
+    // 3. Documents for this period
+    const documents = await new Promise((resolve, reject) => {
+      db.all(
+        `SELECT id, original_filename as name, file_size as size, category,
+                confidence, google_drive_link as driveLink, upload_date as uploadDate
+         FROM documents
+         WHERE user_id = ? AND academic_year = ? AND semester = ?
+         ORDER BY upload_date DESC`,
+        [userId, academicYear, semester],
+        (err, rows) => (err ? reject(err) : resolve(rows || []))
+      );
+    });
+
+    res.json({
+      profile,
+      folderLinks: {
+        syllabus: folderLinks.syllabus || null,
+        courseGuide: folderLinks.courseGuide || null,
+        slm: folderLinks.slm || null,
+        gradingSheet: folderLinks.gradingSheet || null,
+        tos: folderLinks.tos || null,
+      },
+      documents,
+    });
+  } catch (error) {
+    console.error("Admin faculty detail error:", error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // ──────────────────────────────────────────────────────────────────────────────
