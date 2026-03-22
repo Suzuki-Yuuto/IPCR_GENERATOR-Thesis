@@ -58,7 +58,40 @@ const CELL_MAPPING = {
 };
 
 const DB_CATEGORY_TO_KEY = {
-  Syllabus: "syllabus", "Course Guide": "courseGuide", SLM: "slm", TOS: "tos", "Grading Sheet": "gradingSheet"
+  Syllabus: "syllabus", 
+  "Course Guide": "courseGuide", 
+  SLM: "slm", 
+  TOS: "tos", 
+  "Grading Sheet": "gradingSheet",
+  "Attendance Sheet": "attendanceSheet",
+  "Class Record": "classRecord",
+  "Evaluation of Teaching Effectiveness": "evaluationOfTeachingEffectiveness",
+  "Classroom Observation": "classroomObservation",
+  "Test Questions": "testQuestions",
+  "Answer Keys": "answerKeys",
+  "Faculty and Students Seek Advices": "facultyAndStudentsSeekAdvices",
+  "Accomplishment Report": "accomplishmentReport",
+  "R&D Proposal": "randdProposal",
+  "Research Implemented": "researchImplemented",
+  "Research Presented": "researchPresented",
+  "Research Published": "researchPublished",
+  "Intellectual Property Rights": "intellectualPropertyRights",
+  "Research Utilized/Developed": "researchUtilizedDeveloped",
+  "Number of Citations": "numberOfCitations",
+  "Extension Proposal": "extentionProposal",
+  "Persons Trained": "personsTrained",
+  "Person Service Rating": "personServiceRating",
+  "Person Given Training": "personGivenTraining",
+  "Technical Advice": "technicalAdvice",
+  "Accomplishment Report Support": "accomplishmentReportSupport",
+  "Attendance Flag Ceremony": "attendanceFlagCeremony",
+  "Attendance Flag Lowering": "attendanceFlagLowering",
+  "Attendance Health and Wellness Program": "attendanceHealthAndWellnessProgram",
+  "Attendance School Celebrations": "attendanceSchoolCelebrations",
+  "Training/Seminar/Conference Certificate": "trainingSeminarConferenceCertificate",
+  "Attendance Faculty Meeting": "atttendanceFacultyMeeting",
+  "Attendance ISO and Related Activities": "attendanceISOAndRelatedActivities",
+  "Attendance Spiritual Activities": "attendaceSpiritualActivities",
 };
 
 /**
