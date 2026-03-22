@@ -99,7 +99,7 @@ const AdminPanel = ({ adminData, selectedYear, selectedSemester, onConfigSaved }
           </div>
         </div>
 
-        <div className="bg-gray-50 rounded-2xl p-8">
+        <div className="bg-white rounded-3xl p-8 border border-gray-200/60 shadow-sm">
           <h2 className="text-sm font-semibold text-gray-900 tracking-wide uppercase mb-6 flex items-center gap-2">
             <Calendar className="w-4 h-4 text-gray-400" /> System Configuration
           </h2>
@@ -109,7 +109,7 @@ const AdminPanel = ({ adminData, selectedYear, selectedSemester, onConfigSaved }
               <select
                 value={configYear}
                 onChange={e => setConfigYear(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
               >
                 {ACADEMIC_YEARS.map(y => (
                   <option key={y} value={y}>{y}</option>
@@ -121,7 +121,7 @@ const AdminPanel = ({ adminData, selectedYear, selectedSemester, onConfigSaved }
               <select
                 value={configSemester}
                 onChange={e => setConfigSemester(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
               >
                 {SEMESTERS.map(s => (
                   <option key={s} value={s}>{s}</option>
@@ -134,7 +134,7 @@ const AdminPanel = ({ adminData, selectedYear, selectedSemester, onConfigSaved }
                 type="date"
                 value={configStartDate}
                 onChange={e => setConfigStartDate(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
               />
             </div>
             <div>
@@ -143,7 +143,7 @@ const AdminPanel = ({ adminData, selectedYear, selectedSemester, onConfigSaved }
                 type="date"
                 value={configEndDate}
                 onChange={e => setConfigEndDate(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
               />
             </div>
           </div>
@@ -152,7 +152,7 @@ const AdminPanel = ({ adminData, selectedYear, selectedSemester, onConfigSaved }
             <button
               onClick={handleSaveConfig}
               disabled={saveStatus === 'saving'}
-              className="px-5 py-2.5 bg-gray-900 hover:bg-black text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
+              className="px-6 py-3 bg-gray-900 hover:bg-black text-white text-sm font-medium rounded-xl shadow-sm hover:shadow transition-all flex items-center gap-2"
             >
               <Save className="w-4 h-4" />
               {saveStatus === 'saving' ? 'Saving...' : 'Apply Limits'}
@@ -182,12 +182,12 @@ const AdminPanel = ({ adminData, selectedYear, selectedSemester, onConfigSaved }
               placeholder="Search faculty..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-1 focus:border-gray-400 focus:bg-white transition-colors"
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
             />
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto bg-white rounded-2xl border border-gray-200 shadow-sm">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b-2 border-gray-900">
@@ -231,8 +231,8 @@ const AdminPanel = ({ adminData, selectedYear, selectedSemester, onConfigSaved }
 
                     {/* Extended Details */}
                     {expandedUserId === faculty.id && (
-                      <tr className="bg-gray-50/50">
-                        <td colSpan="5" className="px-4 py-8 border-b border-gray-200">
+                      <tr className="bg-gray-50/80 shadow-inner">
+                        <td colSpan="5" className="px-6 py-10 border-b border-gray-200">
                           {detailLoading ? (
                             <div className="flex items-center justify-center text-sm text-gray-500">
                               <Loader2 className="w-4 h-4 animate-spin mr-2" /> Loading records...
@@ -273,7 +273,7 @@ const AdminPanel = ({ adminData, selectedYear, selectedSemester, onConfigSaved }
                                   <FileText className="w-3.5 h-3.5" /> Recent Uploads
                                 </h4>
                                 {(facultyDetail.documents || []).length > 0 ? (
-                                  <div className="bg-white border border-gray-200 rounded-md overflow-hidden">
+                                  <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
                                     <table className="w-full text-left text-sm">
                                       <thead className="bg-gray-50 border-b border-gray-200">
                                         <tr>

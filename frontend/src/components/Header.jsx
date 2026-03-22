@@ -6,7 +6,7 @@ const Header = ({ user, onLogout }) => {
 
   return (
     <>
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
+      <header className="bg-white/90 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-40 shadow-sm transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-5">
             <div className="flex items-center gap-3">
@@ -61,7 +61,7 @@ const Header = ({ user, onLogout }) => {
               <div className="flex gap-4 w-full">
                 <button
                   onClick={() => setShowLogoutModal(false)}
-                  className="flex-1 px-4 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-xl transition-colors"
+                  className="flex-1 px-4 py-3 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-xl transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-200"
                 >
                   Cancel
                 </button>
@@ -70,7 +70,7 @@ const Header = ({ user, onLogout }) => {
                     setShowLogoutModal(false);
                     onLogout();
                   }}
-                  className="flex-1 px-4 py-2.5 bg-gray-900 hover:bg-black text-white text-sm font-medium rounded-xl transition-colors"
+                  className="flex-1 px-4 py-3 bg-gray-900 hover:bg-black text-white text-sm font-medium rounded-xl transition-all shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-gray-900"
                 >
                   Sign Out
                 </button>

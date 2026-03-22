@@ -7,7 +7,7 @@ const UploadPage = ({ user, uploadedFiles, isUploading, onFileUpload, selectedYe
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-6 space-y-12">
+    <div className="max-w-4xl mx-auto py-8 px-6 sm:px-10 bg-white rounded-3xl shadow-sm border border-gray-200/60 min-h-[calc(100vh-12rem)] space-y-12">
       {/* ── Header ──────────────────────────────────────────────────────────── */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-gray-100">
         <div>
@@ -20,8 +20,8 @@ const UploadPage = ({ user, uploadedFiles, isUploading, onFileUpload, selectedYe
 
       {/* ── Upload Dropzone ─────────────────────────────────────────────────── */}
       <div>
-        <div className="group relative border border-gray-200 border-dashed hover:border-gray-400 bg-gray-50/50 hover:bg-gray-50 rounded-2xl p-12 text-center transition-all">
-          <Upload className="w-10 h-10 text-gray-300 mx-auto mb-4 group-hover:text-gray-500 transition-colors" strokeWidth={1.5} />
+        <div className="group relative border-2 border-gray-200 border-dashed hover:border-blue-300 bg-gray-50/50 hover:bg-blue-50/30 rounded-2xl p-12 text-center transition-all duration-300 shadow-inner">
+          <Upload className="w-10 h-10 text-gray-400 mx-auto mb-4 group-hover:text-blue-500 transition-colors duration-300" strokeWidth={1.5} />
           <h3 className="text-base font-medium text-gray-900">Select IPCR PDF Files</h3>
           <p className="text-sm text-gray-500 mt-2 max-w-sm mx-auto leading-relaxed">
             Files will be automatically categorized using AI
@@ -60,9 +60,9 @@ const UploadPage = ({ user, uploadedFiles, isUploading, onFileUpload, selectedYe
           <h3 className="text-sm font-semibold text-gray-900 mb-4 px-2 tracking-wide uppercase">
             Uploaded ({uploadedFiles.length})
           </h3>
-          <div className="divide-y divide-gray-100">
+          <div className="space-y-3">
             {uploadedFiles.map(file => (
-              <div key={file.id} className="group flex items-center justify-between py-4 px-2 hover:bg-gray-50/50 transition-colors rounded-lg">
+              <div key={file.id} className="group flex items-center justify-between py-4 px-5 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-blue-100 transition-all">
                 <div className="flex items-center gap-4 flex-1">
                   <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
                     <FileText className="w-4 h-4 text-gray-500" />

@@ -88,15 +88,15 @@ const ProfilePage = ({ user }) => {
   }
 
   return (
-    <div className="max-w-2xl mx-auto py-6">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-gray-100 mb-8">
+    <div className="max-w-3xl mx-auto py-8 px-6 sm:px-10 bg-white rounded-3xl shadow-sm border border-gray-200/60 min-h-[calc(100vh-12rem)] space-y-10">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-gray-100">
         <div>
           <h1 className="text-3xl font-light text-gray-900 tracking-tight">Profile Settings</h1>
           <p className="text-sm text-gray-500 mt-2">Manage your personal information and preferences.</p>
         </div>
       </div>
 
-      <div className="flex items-center gap-5 mb-10">
+      <div className="flex items-center gap-6 mb-10 bg-gray-50/50 p-6 rounded-2xl border border-gray-100/50">
         {profileMeta.profile_image ? (
           <img src={profileMeta.profile_image} alt={formData.name} className="w-20 h-20 rounded-full object-cover border border-gray-200" />
         ) : (
@@ -122,7 +122,7 @@ const ProfilePage = ({ user }) => {
             type="text"
             value={formData.name}
             onChange={e => handleChange('name', e.target.value)}
-            className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
             placeholder="Enter your full name"
           />
         </div>
@@ -135,7 +135,7 @@ const ProfilePage = ({ user }) => {
             type="text"
             value={formData.department}
             onChange={e => handleChange('department', e.target.value)}
-            className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
             placeholder="Enter your department"
           />
         </div>
@@ -149,7 +149,7 @@ const ProfilePage = ({ user }) => {
               type="text"
               value={formData.position}
               onChange={e => handleChange('position', e.target.value)}
-              className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
               placeholder="e.g. Instructor III"
             />
           </div>
@@ -161,7 +161,7 @@ const ProfilePage = ({ user }) => {
               type="text"
               value={formData.contact_number}
               onChange={e => handleChange('contact_number', e.target.value)}
-              className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
               placeholder="e.g. 0917-123-4567"
             />
           </div>
@@ -175,7 +175,7 @@ const ProfilePage = ({ user }) => {
             value={formData.notes}
             onChange={e => handleChange('notes', e.target.value)}
             rows={3}
-            className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors resize-none"
+            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none"
             placeholder="Any additional information..."
           />
         </div>
@@ -185,7 +185,7 @@ const ProfilePage = ({ user }) => {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex items-center gap-2 bg-gray-900 hover:bg-black disabled:bg-gray-400 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors"
+              className="flex items-center gap-2 bg-gray-900 hover:bg-black disabled:bg-gray-400 text-white px-6 py-3 rounded-xl shadow-sm hover:shadow transition-all text-sm font-medium"
             >
               <Save className="w-4 h-4" />
               {saving ? 'Saving...' : 'Save Profile'}
