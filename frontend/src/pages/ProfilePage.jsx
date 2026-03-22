@@ -2,12 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Save, CheckCircle, AlertCircle, User, Phone, Building, Briefcase, FileText, Loader2 } from 'lucide-react';
 import { API_URL } from '../constants';
 
-/**
- * ProfilePage
- *
- * Props:
- *   user – logged-in user object (must have .id)
- */
 const ProfilePage = ({ user }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -21,7 +15,6 @@ const ProfilePage = ({ user }) => {
   const [saveStatus, setSaveStatus] = useState(null); // 'ok' | 'error'
   const [profileMeta, setProfileMeta] = useState({ email: '', profile_image: '', role: '' });
 
-  // Load profile on mount
   useEffect(() => {
     setLoading(true);
     fetch(`${API_URL}/profile/${user.id}`)
@@ -37,11 +30,10 @@ const ProfilePage = ({ user }) => {
         setProfileMeta({
           email: data.email || user.email || '',
           profile_image: data.profile_image || user.profileImage || '',
-          role: data.role || user.role || 'professor',
+          role: data.role || user.role || 'faculty',
         });
       })
       .catch(() => {
-        // Fallback to user object
         setFormData({
           name: user.name || '',
           department: user.department || '',
@@ -52,7 +44,7 @@ const ProfilePage = ({ user }) => {
         setProfileMeta({
           email: user.email || '',
           profile_image: user.profileImage || '',
-          role: user.role || 'professor',
+          role: user.role || 'faculty',
         });
       })
       .finally(() => setLoading(false));
@@ -89,146 +81,126 @@ const ProfilePage = ({ user }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
-        <span className="ml-3 text-gray-500">Loading profile…</span>
+        <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
+        <span className="ml-3 text-sm text-gray-500">Loading profile...</span>
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="max-w-2xl mx-auto py-6">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-gray-100 mb-8">
+        <div>
+          <h1 className="text-3xl font-light text-gray-900 tracking-tight">Profile Settings</h1>
+          <p className="text-sm text-gray-500 mt-2">Manage your personal information and preferences.</p>
+        </div>
+      </div>
 
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-5">
-          <div className="flex items-center gap-5">
-            {profileMeta.profile_image ? (
-              <img src={profileMeta.profile_image} alt={formData.name} className="w-20 h-20 rounded-full border-4 border-white/30" />
-            ) : (
-              <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-white text-2xl font-bold border-4 border-white/30">
-                {formData.name ? formData.name.split(' ').map(n => n[0]).join('') : 'U'}
-              </div>
-            )}
-            <div>
-              <h2 className="text-xl font-bold text-white">{formData.name || 'Your Profile'}</h2>
-              <p className="text-blue-100 text-sm">{profileMeta.email}</p>
-              <span className="inline-block mt-1 px-2.5 py-0.5 bg-white/20 rounded-full text-xs text-white capitalize">
-                {profileMeta.role}
-              </span>
-            </div>
+      <div className="flex items-center gap-5 mb-10">
+        {profileMeta.profile_image ? (
+          <img src={profileMeta.profile_image} alt={formData.name} className="w-20 h-20 rounded-full object-cover border border-gray-200" />
+        ) : (
+          <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 text-xl font-medium border border-gray-200">
+            {formData.name ? formData.name.split(' ').map(n => n[0]).join('') : 'U'}
           </div>
+        )}
+        <div>
+          <h2 className="text-xl font-medium text-gray-900">{formData.name || 'Your Profile'}</h2>
+          <p className="text-gray-500 text-sm mt-0.5">{profileMeta.email}</p>
+          <span className="inline-block mt-2 px-2.5 py-0.5 bg-gray-100 rounded text-xs text-gray-600 font-medium capitalize">
+            {profileMeta.role}
+          </span>
+        </div>
+      </div>
+
+      <div className="space-y-6">
+        <div>
+          <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5">
+            <User className="w-4 h-4 text-gray-400" /> Full Name
+          </label>
+          <input
+            type="text"
+            value={formData.name}
+            onChange={e => handleChange('name', e.target.value)}
+            className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+            placeholder="Enter your full name"
+          />
         </div>
 
-        {/* Form */}
-        <div className="p-8 space-y-6">
+        <div>
+          <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5">
+            <Building className="w-4 h-4 text-gray-400" /> Department
+          </label>
+          <input
+            type="text"
+            value={formData.department}
+            onChange={e => handleChange('department', e.target.value)}
+            className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+            placeholder="Enter your department"
+          />
+        </div>
 
-          {/* Full Name */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5">
-              <User className="w-4 h-4 text-blue-500" />
-              Full Name
-            </label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={e => handleChange('name', e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-gray-800
-                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-              placeholder="Enter your full name"
-            />
-          </div>
-
-          {/* Department */}
-          <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5">
-              <Building className="w-4 h-4 text-blue-500" />
-              Department
-            </label>
-            <input
-              type="text"
-              value={formData.department}
-              onChange={e => handleChange('department', e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-gray-800
-                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-              placeholder="Enter your department"
-            />
-          </div>
-
-          {/* Position / Role */}
-          <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5">
-              <Briefcase className="w-4 h-4 text-blue-500" />
-              Position / Role
+              <Briefcase className="w-4 h-4 text-gray-400" /> Position / Role
             </label>
             <input
               type="text"
               value={formData.position}
               onChange={e => handleChange('position', e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-gray-800
-                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
               placeholder="e.g. Instructor III"
             />
           </div>
-
-          {/* Contact Number */}
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5">
-              <Phone className="w-4 h-4 text-blue-500" />
-              Contact Number
+              <Phone className="w-4 h-4 text-gray-400" /> Contact Number
             </label>
             <input
               type="text"
               value={formData.contact_number}
               onChange={e => handleChange('contact_number', e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-gray-800
-                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
               placeholder="e.g. 0917-123-4567"
             />
           </div>
+        </div>
 
-          {/* Optional Notes */}
-          <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5">
-              <FileText className="w-4 h-4 text-blue-500" />
-              Optional Notes
-            </label>
-            <textarea
-              value={formData.notes}
-              onChange={e => handleChange('notes', e.target.value)}
-              rows={3}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-gray-800
-                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
-              placeholder="Any additional information…"
-            />
-          </div>
+        <div>
+          <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5">
+            <FileText className="w-4 h-4 text-gray-400" /> Optional Notes
+          </label>
+          <textarea
+            value={formData.notes}
+            onChange={e => handleChange('notes', e.target.value)}
+            rows={3}
+            className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors resize-none"
+            placeholder="Any additional information..."
+          />
+        </div>
 
-          {/* Save button + status */}
-          <div className="flex items-center gap-4 pt-2">
+        <div className="pt-6 border-t border-gray-100 flex items-center justify-between">
+          <div className="flex items-center gap-4">
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300
-                         text-white px-6 py-2.5 rounded-lg font-medium transition"
+              className="flex items-center gap-2 bg-gray-900 hover:bg-black disabled:bg-gray-400 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors"
             >
               <Save className="w-4 h-4" />
-              {saving ? 'Saving…' : 'Save Profile'}
+              {saving ? 'Saving...' : 'Save Profile'}
             </button>
-
             {saveStatus === 'ok' && (
-              <span className="flex items-center gap-1.5 text-sm text-green-700">
-                <CheckCircle className="w-4 h-4" /> Profile saved successfully!
+              <span className="flex items-center gap-1.5 text-sm font-medium text-green-600">
+                <CheckCircle className="w-4 h-4" /> Saved successfully
               </span>
             )}
             {saveStatus === 'error' && (
-              <span className="flex items-center gap-1.5 text-sm text-red-600">
-                <AlertCircle className="w-4 h-4" /> Failed to save. Please try again.
+              <span className="flex items-center gap-1.5 text-sm font-medium text-red-600">
+                <AlertCircle className="w-4 h-4" /> Failed to save
               </span>
             )}
           </div>
-
-          <p className="text-xs text-gray-400 pt-1">
-            Profile changes are saved locally and will not affect your Google account.
-          </p>
         </div>
       </div>
     </div>

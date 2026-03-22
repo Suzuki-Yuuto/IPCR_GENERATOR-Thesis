@@ -47,3 +47,30 @@ export const SEMESTERS = [
   '1st Semester',
   '2nd Semester',
 ];
+
+export const CATEGORY_GROUPS = {
+  instruction: [
+    'syllabus', 'courseGuide', 'slm', 'gradingSheet', 'tos', 'attendanceSheet', 'classRecord',
+    'evaluationOfTeachingEffectiveness', 'classroomObservation', 'testQuestions', 'answerKeys',
+    'facultyAndStudentsSeekAdvices', 'accomplishmentReport'
+  ],
+  research: [
+    'randdProposal', 'researchImplemented', 'researchPresented', 'researchPublished',
+    'intellectualPropertyRights', 'researchUtilizedDeveloped', 'numberOfCitations'
+  ],
+  extension: [
+    'extentionProposal', 'personsTrained', 'personServiceRating', 'personGivenTraining', 'technicalAdvice'
+  ],
+  supportFunction: [
+    'attendanceFlagCeremony', 'attendanceFlagLowering', 'attendanceHealthAndWellnessProgram',
+    'attendanceSchoolCelebrations', 'trainingSeminarConferenceCertificate', 'atttendanceFacultyMeeting',
+    'attendanceISOAndRelatedActivities', 'attendaceSpiritualActivities'
+  ]
+};
+
+export const GROUP_NAMES = {
+  instruction: 'Instruction',
+  research: 'Research',
+  extension: 'Extension',
+  supportFunction: 'Support Function'
+};

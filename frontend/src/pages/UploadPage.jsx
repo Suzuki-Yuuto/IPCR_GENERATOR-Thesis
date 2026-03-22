@@ -1,127 +1,93 @@
 import React from 'react';
 import { Upload, FileText, CheckCircle } from 'lucide-react';
 
-/**
- * UploadPage
- *
- * Props:
- *   user            – logged-in user object
- *   uploadedFiles   – array of document objects for the selected period
- *   isUploading     – boolean
- *   onFileUpload    – callback(event, year, semester)
- *   selectedYear    – currently selected academic year
- *   selectedSemester– currently selected semester
- */
-const UploadPage = ({
-  user,
-  uploadedFiles,
-  isUploading,
-  onFileUpload,
-  selectedYear,
-  selectedSemester,
-}) => {
+const UploadPage = ({ user, uploadedFiles, isUploading, onFileUpload, selectedYear, selectedSemester }) => {
   const handleFileChange = (e) => {
     onFileUpload(e, selectedYear, selectedSemester);
   };
 
-  const categoryColors = {
-    'Syllabus':       'bg-purple-100 text-purple-700',
-    'Course Guide':   'bg-blue-100   text-blue-700',
-    'SLM':            'bg-green-100  text-green-700',
-    'Grading Sheet':  'bg-orange-100 text-orange-700',
-    'TOS':            'bg-pink-100   text-pink-700',
-  };
-
   return (
-    <div className="space-y-6">
-
-      {/* ── Removed Year / Semester selector (moved to NavBar) ────────────────────── */}
-
-      {/* ── Upload dropzone ───────────────────────────────────────────────── */}
-      <div className="bg-white rounded-xl shadow-sm p-8 border-2 border-dashed border-gray-300 hover:border-blue-400 transition">
-        <div className="text-center">
-          <Upload className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-800 mb-1">Upload IPCR Documents</h3>
-          <p className="text-sm text-gray-500 mb-1">
-            AY <span className="font-medium text-blue-600">{selectedYear}</span> · <span className="font-medium text-blue-600">{selectedSemester}</span>
+    <div className="max-w-4xl mx-auto py-6 space-y-12">
+      {/* ── Header ──────────────────────────────────────────────────────────── */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-gray-100">
+        <div>
+          <h1 className="text-3xl font-light text-gray-900 tracking-tight">Upload Documents</h1>
+          <p className="text-sm text-gray-500 mt-2">
+            Add PDF files for <span className="font-medium text-gray-900">AY {selectedYear} · {selectedSemester}</span>
           </p>
-          <p className="text-gray-500 text-sm mb-6">
-            PDF files will be automatically categorized using AI
-            {user.tokens && ' and uploaded to your Google Drive.'}
-          </p>
-          <label className="inline-block">
-            <input
-              type="file"
-              multiple
-              accept=".pdf"
-              onChange={handleFileChange}
-              className="hidden"
-              disabled={isUploading}
-            />
-            <span className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition cursor-pointer inline-block font-medium">
-              {isUploading ? '⏳ Processing…' : '📁 Select PDF Files'}
-            </span>
-          </label>
         </div>
       </div>
 
-      {/* ── Processing indicator ──────────────────────────────────────────── */}
-      {isUploading && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-            <p className="text-blue-800">Processing documents with AI classification…</p>
+      {/* ── Upload Dropzone ─────────────────────────────────────────────────── */}
+      <div>
+        <div className="group relative border border-gray-200 border-dashed hover:border-gray-400 bg-gray-50/50 hover:bg-gray-50 rounded-2xl p-12 text-center transition-all">
+          <Upload className="w-10 h-10 text-gray-300 mx-auto mb-4 group-hover:text-gray-500 transition-colors" strokeWidth={1.5} />
+          <h3 className="text-base font-medium text-gray-900">Select IPCR PDF Files</h3>
+          <p className="text-sm text-gray-500 mt-2 max-w-sm mx-auto leading-relaxed">
+            Files will be automatically categorized using AI
+            {user.tokens && ' and uploaded to your connected Google Drive.'}
+          </p>
+          <div className="mt-8">
+            <label className="inline-block relative">
+              <input
+                type="file"
+                multiple
+                accept=".pdf"
+                onChange={handleFileChange}
+                className="hidden"
+                disabled={isUploading}
+              />
+              <span className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer inline-flex items-center gap-2 ${
+                isUploading 
+                  ? 'bg-gray-100 text-gray-400 pointer-events-none' 
+                  : 'bg-gray-900 text-white hover:bg-black'
+              }`}>
+                {isUploading ? (
+                  <>
+                    <div className="w-4 h-4 rounded-full border-2 border-gray-300 border-t-gray-500 animate-spin" />
+                    Processing...
+                  </>
+                ) : 'Browse Files'}
+              </span>
+            </label>
           </div>
         </div>
-      )}
+      </div>
 
       {/* ── File list ─────────────────────────────────────────────────────── */}
       {uploadedFiles.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-          <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-            <h3 className="font-semibold text-gray-800">
-              Uploaded Documents ({uploadedFiles.length})
-            </h3>
-            <span className="text-xs text-gray-400">
-              {selectedYear} · {selectedSemester}
-            </span>
-          </div>
-          <div className="divide-y divide-gray-200">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900 mb-4 px-2 tracking-wide uppercase">
+            Uploaded ({uploadedFiles.length})
+          </h3>
+          <div className="divide-y divide-gray-100">
             {uploadedFiles.map(file => (
-              <div key={file.id} className="p-4 hover:bg-gray-50 transition">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 flex-1">
-                    <FileText className="w-5 h-5 text-blue-600 shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-800 truncate">{file.name}</p>
-                      <div className="flex items-center gap-3 mt-1 flex-wrap">
-                        <span className="text-xs text-gray-500">
-                          {(file.size / 1024).toFixed(1)} KB
-                        </span>
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${categoryColors[file.category] || 'bg-gray-100 text-gray-700'}`}>
-                          {file.category}
-                        </span>
-                        {file.confidence && (
-                          <span className="text-xs text-gray-500">
-                            {(file.confidence * 100 > 1 ? file.confidence : file.confidence * 100).toFixed(1)}% confidence
-                          </span>
-                        )}
-                      </div>
+              <div key={file.id} className="group flex items-center justify-between py-4 px-2 hover:bg-gray-50/50 transition-colors rounded-lg">
+                <div className="flex items-center gap-4 flex-1">
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                    <FileText className="w-4 h-4 text-gray-500" />
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{file.name}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-xs text-gray-500">{(file.size / 1024).toFixed(1)} KB</span>
+                      <span className="text-gray-300 text-xs">•</span>
+                      <span className="text-xs font-medium text-gray-700">{file.category}</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 ml-2 shrink-0">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                    {file.driveLink && (
-                      <a
-                        href={file.driveLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                      >
-                        View in Drive
-                      </a>
-                    )}
-                  </div>
+                </div>
+                <div className="flex items-center gap-3 shrink-0 pl-4">
+                  {file.driveLink && (
+                    <a
+                      href={file.driveLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors underline underline-offset-4"
+                    >
+                      View
+                    </a>
+                  )}
+                  <CheckCircle className="w-4 h-4 text-green-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
               </div>
             ))}
@@ -130,8 +96,8 @@ const UploadPage = ({
       )}
 
       {uploadedFiles.length === 0 && !isUploading && (
-        <div className="text-center text-gray-400 py-8 text-sm">
-          No documents uploaded for <span className="font-medium">{selectedYear} · {selectedSemester}</span> yet.
+        <div className="text-center text-gray-400 py-12 text-sm border-t border-gray-100">
+          No documents uploaded for this period yet.
         </div>
       )}
     </div>
