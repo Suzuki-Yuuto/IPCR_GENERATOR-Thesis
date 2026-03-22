@@ -57,6 +57,7 @@ const categoryMap = {
   personServiceRating: "Person Service Rating",
   personGivenTraining: "Person Given Training",
   technicalAdvice: "Technical Advice",
+  accomplishmentReportSupport: "Accomplishment Report Support",
   attendanceFlagCeremony: "Attendance Flag Ceremony",
   attendanceFlagLowering: "Attendance Flag Lowering",
   attendanceHealthAndWellnessProgram: "Attendance Health and Wellness Program",

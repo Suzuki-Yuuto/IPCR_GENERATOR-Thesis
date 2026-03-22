@@ -96,8 +96,43 @@ class GoogleDriveService {
       const semFolder     = await this.findOrCreateFolder(semester, yearFolder.id);
       const facultyFolder = await this.findOrCreateFolder(facultyName, semFolder.id);
 
-      // Create/find ALL 5 category folders under the faculty folder
-      const categories = ['Syllabus', 'Course Guide', 'SLM', 'Grading Sheet', 'TOS'];
+      // Create/find ALL category folders under the faculty folder
+      const categories = [
+        'Syllabus', 
+        'Course Guide', 
+        'SLM', 
+        'Grading Sheet', 
+        'TOS',
+        'Attendance Sheet',
+        'Class Record',
+        'Evaluation of Teaching Effectiveness',
+        'Classroom Observation',
+        'Test Questions',
+        'Answer Keys',
+        'Faculty and Students Seek Advices',
+        'Accomplishment Report',  /// END OF INSTRUCTION
+        'R&D Proposal',           /// START OF RESEARCH
+        'Research Implemented',
+        'Research Presented',
+        'Research Published',
+        'Intellectual Property Rights',
+        'Research Utilized/Developed',
+        'Number of Citations',    /// END OF RESEARCH
+        'Extension Proposal',     /// START OF EXTENSION
+        'Persons Trained',
+        'Person Service Rating',
+        'Person Given Training',
+        'Technical Advice',       /// END OF EXTENSION
+        'Accomplishment Report Support', /// START OF SUPPORT FUNCTION
+        'Attendance Flag Ceremony',
+        'Attendance Flag Lowering',
+        'Attendance Health and Wellness Program',
+        'Attendance School Celebrations',
+        'Training/Seminar/Conference Certificate',
+        'Attendance Faculty Meeting',
+        'Attendance ISO and Related Activities',
+        'Attendance Spiritual Activities' /// END OF SUPPORT FUNCTION
+      ];
       const categoryFolderLinks = {};
 
       for (const cat of categories) {
