@@ -97,7 +97,7 @@ const ProfilePage = ({ user }) => {
 
   return (
     <div className="max-w-2xl">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
 
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-5">
@@ -120,7 +120,7 @@ const ProfilePage = ({ user }) => {
         </div>
 
         {/* Form */}
-        <div className="p-6 space-y-5">
+        <div className="p-8 space-y-6">
 
           {/* Full Name */}
           <div>

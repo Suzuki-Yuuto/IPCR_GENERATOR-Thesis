@@ -1,6 +1,5 @@
 import React from 'react';
-import { Upload, FileText, CheckCircle, BookOpen, Calendar } from 'lucide-react';
-import { ACADEMIC_YEARS, SEMESTERS } from '../constants';
+import { Upload, FileText, CheckCircle } from 'lucide-react';
 
 /**
  * UploadPage
@@ -12,8 +11,6 @@ import { ACADEMIC_YEARS, SEMESTERS } from '../constants';
  *   onFileUpload    – callback(event, year, semester)
  *   selectedYear    – currently selected academic year
  *   selectedSemester– currently selected semester
- *   onYearChange    – callback(year)
- *   onSemesterChange– callback(semester)
  */
 const UploadPage = ({
   user,
@@ -22,8 +19,6 @@ const UploadPage = ({
   onFileUpload,
   selectedYear,
   selectedSemester,
-  onYearChange,
-  onSemesterChange,
 }) => {
   const handleFileChange = (e) => {
     onFileUpload(e, selectedYear, selectedSemester);
@@ -40,46 +35,7 @@ const UploadPage = ({
   return (
     <div className="space-y-6">
 
-      {/* ── Year / Semester selector ─────────────────────────────────────── */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <div className="flex items-center gap-2 text-gray-700 font-medium shrink-0">
-            <Calendar className="w-4 h-4 text-blue-500" />
-            Academic Period:
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-            <div className="flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-gray-400 shrink-0" />
-              <select
-                value={selectedYear}
-                onChange={e => onYearChange(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg text-gray-800 text-sm
-                           focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-              >
-                {ACADEMIC_YEARS.map(y => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
-            </div>
-
-            <select
-              value={selectedSemester}
-              onChange={e => onSemesterChange(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-gray-800 text-sm
-                         focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-            >
-              {SEMESTERS.map(s => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
-          </div>
-
-          <span className="hidden sm:block text-xs text-gray-400 ml-auto">
-            Documents displayed and uploaded will be saved to the selected period.
-          </span>
-        </div>
-      </div>
+      {/* ── Removed Year / Semester selector (moved to NavBar) ────────────────────── */}
 
       {/* ── Upload dropzone ───────────────────────────────────────────────── */}
       <div className="bg-white rounded-xl shadow-sm p-8 border-2 border-dashed border-gray-300 hover:border-blue-400 transition">

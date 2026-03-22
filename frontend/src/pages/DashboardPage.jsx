@@ -42,7 +42,7 @@ const DashboardPage = ({ user, ipcrData, onExport, selectedYear, selectedSemeste
     <div className="space-y-6">
 
       {/* Google Drive Status */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4">
         <div className="flex items-center gap-3">
           {user.tokens ? (
             <>
@@ -65,7 +65,7 @@ const DashboardPage = ({ user, ipcrData, onExport, selectedYear, selectedSemeste
       </div>
 
       {/* Overall Rating Card */}
-      <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg shadow-lg p-8 text-white">
+      <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl shadow-md p-8 text-white relative overflow-hidden">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-blue-100 text-sm font-medium mb-1">Overall IPCR Rating</p>
@@ -89,7 +89,7 @@ const DashboardPage = ({ user, ipcrData, onExport, selectedYear, selectedSemeste
             : calculateRating(data.target, data.accomplished);
 
           return (
-            <div key={key} className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+            <div key={key} className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 p-6 border border-gray-100">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-gray-800">{CATEGORY_NAMES[key]}</h3>
                 <div className={`px-3 py-1 rounded-full text-sm font-medium ${
@@ -139,8 +139,8 @@ const DashboardPage = ({ user, ipcrData, onExport, selectedYear, selectedSemeste
       </div>
 
       {/* Export Button */}
-      <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-        <div className="flex items-center justify-between">
+      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center justify-between w-full sm:w-auto">
           <div>
             <h3 className="font-semibold text-gray-800 mb-1">Export IPCR Document</h3>
             <p className="text-sm text-gray-600">Download your complete IPCR in Excel format</p>
