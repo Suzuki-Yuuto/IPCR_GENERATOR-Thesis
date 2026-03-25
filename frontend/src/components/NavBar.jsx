@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Upload, User, Shield, BookOpen, Calendar } from 'lucide-react';
+import { Home, Upload, User, Shield, BookOpen, Calendar, Target } from 'lucide-react';
 import { ACADEMIC_YEARS, SEMESTERS } from '../constants';
 
 const NavBar = ({ currentPage, setCurrentPage, isAdmin, selectedYear, setSelectedYear, selectedSemester, setSelectedSemester }) => {
@@ -25,6 +25,12 @@ const NavBar = ({ currentPage, setCurrentPage, isAdmin, selectedYear, setSelecte
           <User className="w-4 h-4" />
           Profile
         </button>
+        {!isAdmin && (
+          <button onClick={() => setCurrentPage('targets')} className={btnClass('targets')}>
+            <Target className="w-4 h-4" />
+            Targets
+          </button>
+        )}
         {isAdmin && (
           <button onClick={() => setCurrentPage('admin')} className={btnClass('admin')}>
             <Shield className="w-4 h-4" />

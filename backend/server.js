@@ -1,7 +1,6 @@
 // Load environment variables
 require("dotenv").config();
 
-const DefaultTarget = require("../shared/defaultTarget.json");
 const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
@@ -12,6 +11,8 @@ const path = require("path");
 
 const db = require("./database");
 const authRoutes = require("./routes/auth");
+const targetsRoutes = require("./routes/targets");
+const presetsRoutes = require("./routes/presets");
 const GoogleDriveService = require("./utils/googleDrive");
 const { saveIPCR } = require("./saveIPCR");
 
@@ -24,6 +25,8 @@ fs.ensureDirSync("uploads");
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api", targetsRoutes);
+app.use("/api", presetsRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => res.json({ status: "ok", timestamp: new Date() }));
@@ -149,51 +152,51 @@ app.get("/api/ipcr/:userId", async (req, res) => {
   const academicYear = req.query.year     || active.academic_year;
   const semester     = req.query.semester || active.semester;
 
-  const query = `
-    SELECT category, target, accomplished, rating, submission_date
-    FROM ipcr_records
-    WHERE user_id = ? AND (academic_year = ? OR academic_year IS NULL) AND (semester = ? OR semester IS NULL)
-    ORDER BY COALESCE(academic_year,'') DESC, COALESCE(semester,'') DESC
-  `;
+  try {
+    // 1. Load user-specific targets for this period (fallback to 5)
+    const { rowToTargets } = require('./routes/targets');
+    const userTargetRow = await new Promise((resolve, reject) =>
+      db.get(
+        `SELECT * FROM user_targets WHERE user_id = ? AND academic_year = ? AND semester = ?`,
+        [userId, academicYear, semester],
+        (err, row) => (err ? reject(err) : resolve(row))
+      )
+    );
+    const userTargets = rowToTargets(userTargetRow);  // null row → defaults of 5
+    const hasTargets = !!userTargetRow;
 
-  db.all(query, [userId, academicYear, semester], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
+    // 2. Build baseline ipcrData from user targets
+    const ipcrData = {};
+    Object.keys(categoryMap).forEach((key) => {
+      ipcrData[key] = {
+        target: userTargets ? (userTargets[key] ?? 5) : 5,
+        accomplished: 0,
+        submitted: null,
+        hasTargets,
+      };
+    });
+    // Include accomplishmentReportSupport which has no categoryMap entry but may be in user_targets
+    if (!ipcrData.accomplishmentReportSupport) {
+      ipcrData.accomplishmentReportSupport = {
+        target: userTargets ? (userTargets.accomplishmentReportSupport ?? 5) : 5,
+        accomplished: 0,
+        submitted: null,
+        hasTargets,
+      };
+    }
 
-    const ipcrData = {
-      syllabus:     { target: DefaultTarget.syllabus,     accomplished: 0, submitted: null },
-      courseGuide:  { target: DefaultTarget.courseGuide,  accomplished: 0, submitted: null },
-      slm:          { target: DefaultTarget.slm,          accomplished: 0, submitted: null },
-      gradingSheet: { target: DefaultTarget.gradingSheet, accomplished: 0, submitted: null },
-      tos:          { target: DefaultTarget.tos,          accomplished: 0, submitted: null },
-      attendanceSheet: { target: DefaultTarget.attendanceSheet, accomplished: 0, submitted: null },
-      classRecord: { target: DefaultTarget.classRecord, accomplished: 0, submitted: null },
-      evaluationOfTeachingEffectiveness: { target: DefaultTarget.evaluationOfTeachingEffectiveness, accomplished: 0, submitted: null },
-      classroomObservation: { target: DefaultTarget.classroomObservation, accomplished: 0, submitted: null },
-      testQuestions: { target: DefaultTarget.testQuestions, accomplished: 0, submitted: null },
-      answerKeys: { target: DefaultTarget.answerKeys, accomplished: 0, submitted: null },
-      facultyAndStudentsSeekAdvices: { target: DefaultTarget.facultyAndStudentsSeekAdvices, accomplished: 0, submitted: null },
-      accomplishmentReport: { target: DefaultTarget.accomplishmentReport, accomplished: 0, submitted: null },
-      randdProposal: { target: DefaultTarget.randdProposal, accomplished: 0, submitted: null },
-      researchImplemented: { target: DefaultTarget.researchImplemented, accomplished: 0, submitted: null },
-      researchPresented: { target: DefaultTarget.researchPresented, accomplished: 0, submitted: null },
-      researchPublished: { target: DefaultTarget.researchPublished, accomplished: 0, submitted: null },
-      intellectualPropertyRights: { target: DefaultTarget.intellectualPropertyRights, accomplished: 0, submitted: null },
-      researchUtilizedDeveloped: { target: DefaultTarget.researchUtilizedDeveloped, accomplished: 0, submitted: null },
-      numberOfCitations: { target: DefaultTarget.numberOfCitations, accomplished: 0, submitted: null },
-      extentionProposal: { target: DefaultTarget.extentionProposal, accomplished: 0, submitted: null },
-      personsTrained: { target: DefaultTarget.personsTrained, accomplished: 0, submitted: null },
-      personServiceRating: { target: DefaultTarget.personServiceRating, accomplished: 0, submitted: null },
-      personGivenTraining: { target: DefaultTarget.personGivenTraining, accomplished: 0, submitted: null },
-      technicalAdvice: { target: DefaultTarget.technicalAdvice, accomplished: 0, submitted: null },
-      attendanceFlagCeremony: { target: DefaultTarget.attendanceFlagCeremony, accomplished: 0, submitted: null },
-      attendanceFlagLowering: { target: DefaultTarget.attendanceFlagLowering, accomplished: 0, submitted: null },
-      attendanceHealthAndWellnessProgram: { target: DefaultTarget.attendanceHealthAndWellnessProgram, accomplished: 0, submitted: null },
-      attendanceSchoolCelebrations: { target: DefaultTarget.attendanceSchoolCelebrations, accomplished: 0, submitted: null },
-      trainingSeminarConferenceCertificate: { target: DefaultTarget.trainingSeminarConferenceCertificate, accomplished: 0, submitted: null },
-      atttendanceFacultyMeeting: { target: DefaultTarget.atttendanceFacultyMeeting, accomplished: 0, submitted: null },
-      attendanceISOAndRelatedActivities: { target: DefaultTarget.attendanceISOAndRelatedActivities, accomplished: 0, submitted: null },
-      attendaceSpiritualActivities: { target: DefaultTarget.attendaceSpiritualActivities, accomplished: 0, submitted: null },
-    };
+    // 3. Overlay actual accomplished/rating from ipcr_records
+    const rows = await new Promise((resolve, reject) =>
+      db.all(
+        `SELECT category, target, accomplished, rating, submission_date
+         FROM ipcr_records
+         WHERE user_id = ? AND (academic_year = ? OR academic_year IS NULL)
+           AND (semester = ? OR semester IS NULL)
+         ORDER BY COALESCE(academic_year,'') DESC, COALESCE(semester,'') DESC`,
+        [userId, academicYear, semester],
+        (err, r) => (err ? reject(err) : resolve(r))
+      )
+    );
 
     const byCategory = {};
     rows.forEach((row) => {
@@ -204,16 +207,21 @@ app.get("/api/ipcr/:userId", async (req, res) => {
       }
     });
     Object.entries(byCategory).forEach(([key, row]) => {
+      // Keep user target; only update accomplished/submitted/rating from records
       ipcrData[key] = {
-        target: row.target,
+        target: ipcrData[key].target,
         accomplished: row.accomplished,
         submitted: row.submission_date,
         rating: row.rating != null ? Number(row.rating) : null,
+        hasTargets,
       };
     });
 
     res.json(ipcrData);
-  });
+  } catch (err) {
+    console.error('GET /api/ipcr/:userId error:', err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 /**

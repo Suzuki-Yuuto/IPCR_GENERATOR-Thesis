@@ -3,436 +3,77 @@ const path = require("path");
 const fs = require("fs");
 const db = require("../database");
 const { computeCategory } = require("../ipcrCalculator");
-const DefaultTarget = require("../../shared/defaultTarget.json");
 
 const TEMPLATE_PATH = path.resolve(__dirname, "Template.xlsx");
 
 /**
- * META DATA
+ * HELPER: Generates cell addresses for a row to avoid repetition.
+ * Columns: Target(B), Acc(C), Date(D), SubDate(E), Q(F), E(G), T(H), Rating(I), Link(J)
+ */
+const mapRow = (row, dateType = "end") => ({
+  target: `B${row}`,
+  accomplished: `C${row}`,
+  dateCell: `D${row}`,
+  submissionDate: `E${row}`,
+  Q: `F${row}`,
+  E: `G${row}`,
+  T: `H${row}`,
+  rating: `I${row}`,
+  folderLink: `J${row}`,
+  dateType: dateType // "start" or "end"
+});
+
+/**
+ * META DATA MAPPING
  */
 const META_DATA_MAPPING = [
   { key: "name", cell: "A13", format: "{{val.upper}}" },
   {
     key: "name",
     cell: "A6",
-    format:
-      "I, {{val}}, Instructor III of the Laguna State Polytechnic University, commit to deliver and agree to be rated on the attainment of the",
+    format: "I, {{val}}, Instructor III of the Laguna State Polytechnic University, commit to deliver and agree to be rated on the attainment of the",
   },
   { key: "department", cell: "A14", format: "{{val.upper}}" },
 ];
 
 /**
- * CELL MAPPING
+ * CELL MAPPING - Organized by row number
  */
 const CELL_MAPPING = {
-  syllabus: {
-    target: "B19",
-    accomplished: "C19",
-    Q: "F19",
-    E: "G19",
-    T: "H19",
-    rating: "I19",
-    dateCell: "D19",
-    dateType: "start",
-    submissionDate: "E19",
-    folderLink: "J19",
-  },
-  courseGuide: {
-    target: "B20",
-    accomplished: "C20",
-    Q: "F20",
-    E: "G20",
-    T: "H20",
-    rating: "I20",
-    dateCell: "D20",
-    dateType: "start",
-    submissionDate: "E20",
-    folderLink: "J20",
-  },
-  slm: {
-    target: "B21",
-    accomplished: "C21",
-    Q: "F21",
-    E: "G21",
-    T: "H21",
-    rating: "I21",
-    dateCell: "D21",
-    dateType: "start",
-    submissionDate: "E21",
-    folderLink: "J21",
-  },
-  tos: {
-    target: "B30",
-    accomplished: "C30",
-    Q: "F30",
-    E: "G30",
-    T: "H30",
-    rating: "I30",
-    dateCell: "D30",
-    dateType: "end",
-    submissionDate: "E30",
-    folderLink: "J30",
-  },
-  gradingSheet: {
-    target: "B34",
-    accomplished: "C34",
-    Q: "F34",
-    E: "G34",
-    T: "H34",
-    rating: "I34",
-    dateCell: "D34",
-    dateType: "end",
-    submissionDate: "E34",
-    folderLink: "J34",
-  },
-  attendanceSheet: {
-    target: "B24",
-    accomplished: "C24",
-    Q: "F24",
-    E: "G24",
-    T: "H24",
-    rating: "I24",
-    dateCell: "D24",
-    dateType: "end",
-    submissionDate: "E24",
-    folderLink: "J24",
-  },
-  classRecord: {
-    target: "B25",
-    accomplished: "C25",
-    Q: "F25",
-    E: "G25",
-    T: "H25",
-    rating: "I25",
-    dateCell: "D25",
-    dateType: "end",
-    submissionDate: "E25",
-    folderLink: "J25",
-  },
-  evaluationOfTeachingEffectiveness: {
-    target: "B27",
-    accomplished: "C27",
-    Q: "F27",
-    E: "G27",
-    T: "H27",
-    rating: "I27",
-    dateCell: "D27",
-    dateType: "end",
-    submissionDate: "E27",
-    folderLink: "J27",
-  },
-  classroomObservation: {
-    target: "B28",
-    accomplished: "C28",
-    Q: "F28",
-    E: "G28",
-    T: "H28",
-    rating: "I28",
-    dateCell: "D28",
-    dateType: "end",
-    submissionDate: "E28",
-    folderLink: "J28",
-  },
-  testQuestions: {
-    target: "B31",
-    accomplished: "C31",
-    Q: "F31",
-    E: "G31",
-    T: "H31",
-    rating: "I31",
-    dateCell: "D31",
-    dateType: "end",
-    submissionDate: "E31",
-    folderLink: "J31",
-  },
-  answerKeys: {
-    target: "B32",
-    accomplished: "C32",
-    Q: "F32",
-    E: "G32",
-    T: "H32",
-    rating: "I32",
-    dateCell: "D32",
-    dateType: "end",
-    submissionDate: "E32",
-    folderLink: "J32",
-  },
-  facultyAndStudentsSeekAdvices: {
-    target: "B36",
-    accomplished: "C36",
-    Q: "F36",
-    E: "G36",
-    T: "H36",
-    rating: "I36",
-    dateCell: "D36",
-    dateType: "end",
-    submissionDate: "E36",
-    folderLink: "J36",
-  },
-  accomplishmentReport: {
-    target: "B38",
-    accomplished: "C38",
-    Q: "F38",
-    E: "G38",
-    T: "H38",
-    rating: "I38",
-    dateCell: "D38",
-    dateType: "end",
-    submissionDate: "E38",
-    folderLink: "J38",
-  },
-  randdProposal: {
-    target: "B41",
-    accomplished: "C41",
-    Q: "F41",
-    E: "G41",
-    T: "H41",
-    rating: "I41",
-    dateCell: "D41",
-    dateType: "end",
-    submissionDate: "E41",
-    folderLink: "J41",
-  },
-  researchImplemented: {
-    target: "B42",
-    accomplished: "C42",
-    Q: "F42",
-    E: "G42",
-    T: "H42",
-    rating: "I42",
-    dateCell: "D42",
-    dateType: "end",
-    submissionDate: "E42",
-    folderLink: "J42",
-  },
-  researchPresented: {
-    target: "B43",
-    accomplished: "C43",
-    Q: "F43",
-    E: "G43",
-    T: "H43",
-    rating: "I43",
-    dateCell: "D43",
-    dateType: "end",
-    submissionDate: "E43",
-    folderLink: "J43",
-  },
-  researchPublished: {
-    target: "B44",
-    accomplished: "C44",
-    Q: "F44",
-    E: "G44",
-    T: "H44",
-    rating: "I44",
-    dateCell: "D44",
-    dateType: "end",
-    submissionDate: "E44",
-    folderLink: "J44",
-  },
-  intellectualPropertyRights: {
-    target: "B45",
-    accomplished: "C45",
-    Q: "F45",
-    E: "G45",
-    T: "H45",
-    rating: "I45",
-    dateCell: "D45",
-    dateType: "end",
-    submissionDate: "E45",
-    folderLink: "J45",
-  },
-  researchUtilizedDeveloped: {
-    target: "B46",
-    accomplished: "C46",
-    Q: "F46",
-    E: "G46",
-    T: "H46",
-    rating: "I46",
-    dateCell: "D46",
-    dateType: "end",
-    submissionDate: "E46",
-    folderLink: "J46",
-  },
-  numberOfCitations: {
-    target: "B47",
-    accomplished: "C47",
-    Q: "F47",
-    E: "G47",
-    T: "H47",
-    rating: "I47",
-    dateCell: "D47",
-    dateType: "end",
-    submissionDate: "E47",
-    folderLink: "J47",
-  },
-  extentionProposal: {
-    target: "B50",
-    accomplished: "C50",
-    Q: "F50",
-    E: "G50",
-    T: "H50",
-    rating: "I50",
-    dateCell: "D50",
-    dateType: "end",
-    submissionDate: "E50",
-    folderLink: "J50",
-  },
-  personsTrained: {
-    target: "B51",
-    accomplished: "C51",
-    Q: "F51",
-    E: "G51",
-    T: "H51",
-    rating: "I51",
-    dateCell: "D51",
-    dateType: "end",
-    submissionDate: "E51",
-    folderLink: "J51",
-  },
-  personServiceRating: {
-    target: "B52",
-    accomplished: "C52",
-    Q: "F52",
-    E: "G52",
-    T: "H52",
-    rating: "I52",
-    dateCell: "D52",
-    dateType: "end",
-    submissionDate: "E52",
-    folderLink: "J52",
-  },
-  personGivenTraining: {
-    target: "B53",
-    accomplished: "C53",
-    Q: "F53",
-    E: "G53",
-    T: "H53",
-    rating: "I53",
-    dateCell: "D53",
-    dateType: "end",
-    submissionDate: "E53",
-    folderLink: "J53",
-  },
-  technicalAdvice: {
-    target: "B54",
-    accomplished: "C54",
-    Q: "F54",
-    E: "G54",
-    T: "H54",
-    rating: "I54",
-    dateCell: "D54",
-    dateType: "end",
-    submissionDate: "E54",
-    folderLink: "J54",
-  },
-  accomplishmentReportSupport: {
-    target: "B57",
-    accomplished: "C57",
-    Q: "F57",
-    E: "G57",
-    T: "H57",
-    rating: "I57",
-    dateCell: "D57",
-    dateType: "end",
-    submissionDate: "E57",
-    folderLink: "J57",
-  },
-  attendanceFlagCeremony: {
-    target: "B59",
-    accomplished: "C59",
-    Q: "F59",
-    E: "G59",
-    T: "H59",
-    rating: "I59",
-    dateCell: "D59",
-    dateType: "end",
-    submissionDate: "E59",
-    folderLink: "J59",
-  },
-  attendanceFlagLowering: {
-    target: "B61",
-    accomplished: "C61",
-    Q: "F61",
-    E: "G61",
-    T: "H61",
-    rating: "I61",
-    dateCell: "D61",
-    dateType: "end",
-    submissionDate: "E61",
-    folderLink: "J61",
-  },
-  attendanceHealthAndWellnessProgram: {
-    target: "B63",
-    accomplished: "C63",
-    Q: "F63",
-    E: "G63",
-    T: "H63",
-    rating: "I63",
-    dateCell: "D63",
-    dateType: "end",
-    submissionDate: "E63",
-    folderLink: "J63",
-  },
-  attendanceSchoolCelebrations: {
-    target: "B65",
-    accomplished: "C65",
-    Q: "F65",
-    E: "G65",
-    T: "H65",
-    rating: "I65",
-    dateCell: "D65",
-    dateType: "end",
-    submissionDate: "E65",
-    folderLink: "J65",
-  },
-  trainingSeminarConferenceCertificate: {
-    target: "B67",
-    accomplished: "C67",
-    Q: "F67",
-    E: "G67",
-    T: "H67",
-    rating: "I67",
-    dateCell: "D67",
-    dateType: "end",
-    submissionDate: "E67",
-    folderLink: "J67",
-  },
-  atttendanceFacultyMeeting: {
-    target: "B69",
-    accomplished: "C69",
-    Q: "F69",
-    E: "G69",
-    T: "H69",
-    rating: "I69",
-    dateCell: "D69",
-    dateType: "end",
-    submissionDate: "E69",
-    folderLink: "J69",
-  },
-  attendanceISOAndRelatedActivities: {
-    target: "B71",
-    accomplished: "C71",
-    Q: "F71",
-    E: "G71",
-    T: "H71",
-    rating: "I71",
-    dateCell: "D71",
-    dateType: "end",
-    submissionDate: "E71",
-    folderLink: "J71",
-  },
-  attendaceSpiritualActivities: {
-    target: "B73",
-    accomplished: "C73",
-    Q: "F73",
-    E: "G73",
-    T: "H73",
-    rating: "I73",
-    dateCell: "D73",
-    dateType: "end",
-    submissionDate: "E73",
-    folderLink: "J73",
-  },
+  syllabus: mapRow(19, "start"),
+  courseGuide: mapRow(20, "start"),
+  slm: mapRow(21, "start"),
+  attendanceSheet: mapRow(24, "end"),
+  classRecord: mapRow(25, "end"),
+  evaluationOfTeachingEffectiveness: mapRow(27, "end"),
+  classroomObservation: mapRow(28, "end"),
+  tos: mapRow(30, "end"),
+  testQuestions: mapRow(31, "end"),
+  answerKeys: mapRow(32, "end"),
+  gradingSheet: mapRow(34, "end"),
+  facultyAndStudentsSeekAdvices: mapRow(36, "end"),
+  accomplishmentReport: mapRow(38, "end"),
+  randdProposal: mapRow(41, "end"),
+  researchImplemented: mapRow(42, "end"),
+  researchPresented: mapRow(43, "end"),
+  researchPublished: mapRow(44, "end"),
+  intellectualPropertyRights: mapRow(45, "end"),
+  researchUtilizedDeveloped: mapRow(46, "end"),
+  numberOfCitations: mapRow(47, "end"),
+  extentionProposal: mapRow(50, "end"),
+  personsTrained: mapRow(51, "end"),
+  personServiceRating: mapRow(52, "end"),
+  personGivenTraining: mapRow(53, "end"),
+  technicalAdvice: mapRow(54, "end"),
+  accomplishmentReportSupport: mapRow(57, "end"),
+  attendanceFlagCeremony: mapRow(59, "end"),
+  attendanceFlagLowering: mapRow(61, "end"),
+  attendanceHealthAndWellnessProgram: mapRow(63, "end"),
+  attendanceSchoolCelebrations: mapRow(65, "end"),
+  trainingSeminarConferenceCertificate: mapRow(67, "end"),
+  atttendanceFacultyMeeting: mapRow(69, "end"),
+  attendanceISOAndRelatedActivities: mapRow(71, "end"),
+  attendaceSpiritualActivities: mapRow(73, "end"),
 };
 
 const DB_CATEGORY_TO_KEY = {
@@ -464,11 +105,9 @@ const DB_CATEGORY_TO_KEY = {
   "Accomplishment Report Support": "accomplishmentReportSupport",
   "Attendance Flag Ceremony": "attendanceFlagCeremony",
   "Attendance Flag Lowering": "attendanceFlagLowering",
-  "Attendance Health and Wellness Program":
-    "attendanceHealthAndWellnessProgram",
+  "Attendance Health and Wellness Program": "attendanceHealthAndWellnessProgram",
   "Attendance School Celebrations": "attendanceSchoolCelebrations",
-  "Training/Seminar/Conference Certificate":
-    "trainingSeminarConferenceCertificate",
+  "Training/Seminar/Conference Certificate": "trainingSeminarConferenceCertificate",
   "Attendance Faculty Meeting": "atttendanceFacultyMeeting",
   "Attendance ISO and Related Activities": "attendanceISOAndRelatedActivities",
   "Attendance Spiritual Activities": "attendaceSpiritualActivities",
@@ -476,57 +115,39 @@ const DB_CATEGORY_TO_KEY = {
 
 async function exportIPCRToExcel(userId, academicYear, semester) {
   const workbook = new ExcelJS.Workbook();
-  if (!fs.existsSync(TEMPLATE_PATH))
-    throw new Error(`Template not found at ${TEMPLATE_PATH}`);
+  if (!fs.existsSync(TEMPLATE_PATH)) throw new Error(`Template not found at ${TEMPLATE_PATH}`);
+  
   await workbook.xlsx.readFile(TEMPLATE_PATH);
   const worksheet = workbook.getWorksheet("IPCR") || workbook.worksheets[0];
 
   const uid = parseInt(userId, 10) || userId;
 
-  let activeYear = academicYear;
-  let activeSem = semester;
-  if (!activeYear || !activeSem) {
-    const config = await new Promise((resolve) => {
-      db.get(
-        `SELECT academic_year, semester FROM semester_config WHERE is_active = 1 ORDER BY id DESC LIMIT 1`,
-        (err, row) =>
-          resolve(
-            row || { academic_year: "2025-2026", semester: "1st Semester" },
-          ),
-      );
-    });
-    activeYear = activeYear || config.academic_year;
-    activeSem = activeSem || config.semester;
-  }
-
-  const user = await new Promise((resolve, reject) => {
+  // 1. FETCH SEMESTER CONFIG (Fallback for global dates)
+  const config = await new Promise((resolve) => {
     db.get(
-      `SELECT u.*, COALESCE(up.name, u.name) as display_name,
-              COALESCE(up.department, u.department) as display_department
-       FROM users u LEFT JOIN user_profiles up ON u.id = up.user_id
-       WHERE u.id = ?`,
-      [uid],
-      (err, row) => {
-        if (err) reject(err);
-        else resolve(row);
-      },
+      `SELECT academic_year, semester, start_date, end_date FROM semester_config WHERE is_active = 1 ORDER BY id DESC LIMIT 1`,
+      (err, row) => resolve(row || { academic_year: "2025-2026", semester: "1st Semester" })
     );
   });
 
-  const rows = await new Promise((resolve, reject) => {
-    db.all(
-      `SELECT category, target, accomplished, q_score, e_score, t_score, rating,
-              submission_date, start_date, end_date, folder_link
-       FROM ipcr_records
-       WHERE user_id = ?`,
-      [uid],
-      (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      },
-    );
+  const activeYear = academicYear || config.academic_year;
+  const activeSem = semester || config.semester;
+
+  // 2. FETCH DATA IN PARALLEL
+  const [user, records, userTargetRow] = await Promise.all([
+    new Promise(res => db.get(`SELECT u.*, COALESCE(up.name, u.name) as display_name, COALESCE(up.department, u.department) as display_department FROM users u LEFT JOIN user_profiles up ON u.id = up.user_id WHERE u.id = ?`, [uid], (err, row) => res(row))),
+    new Promise(res => db.all(`SELECT * FROM ipcr_records WHERE user_id = ? AND academic_year = ? AND semester = ?`, [uid, activeYear, activeSem], (err, rows) => res(rows || []))),
+    new Promise(res => db.get(`SELECT * FROM user_targets WHERE user_id = ? AND academic_year = ? AND semester = ?`, [uid, activeYear, activeSem], (err, row) => res(row)))
+  ]);
+
+  // Index records by key
+  const recordsByKey = {};
+  records.forEach(r => {
+    const key = DB_CATEGORY_TO_KEY[r.category];
+    if (key) recordsByKey[key] = r;
   });
 
+  // 3. SET METADATA
   if (user) {
     const metaUser = {
       name: user.display_name || user.name,
@@ -534,59 +155,46 @@ async function exportIPCRToExcel(userId, academicYear, semester) {
     };
     META_DATA_MAPPING.forEach((item) => {
       const dbValue = (metaUser[item.key] || "").toString();
-      let finalString = item.format;
-      finalString = finalString.replace("{{val.upper}}", dbValue.toUpperCase());
-      finalString = finalString.replace("{{val}}", dbValue);
+      let finalString = item.format.replace("{{val.upper}}", dbValue.toUpperCase()).replace("{{val}}", dbValue);
       worksheet.getCell(item.cell).value = finalString;
     });
   }
 
-  const byKey = {};
-  rows.forEach((r) => {
-    const key = DB_CATEGORY_TO_KEY[r.category];
-    if (key) byKey[key] = r;
-  });
-
+  // 4. POPULATE ROWS
   Object.keys(CELL_MAPPING).forEach((key) => {
     const map = CELL_MAPPING[key];
-    const r = byKey[key];
+    const r = recordsByKey[key];
 
-    const target =
-      r?.target != null ? Number(r.target) : Number(DefaultTarget[key] || 0);
-    const accomplished = r?.accomplished != null ? Number(r.accomplished) : 0;
+    // TARGET LOGIC: DB Record -> user_targets table -> Hard Default (5)
+    // Converts camelCase to snake_case to match user_targets columns
+    const dbColumnName = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+    const target = r?.target ?? userTargetRow?.[dbColumnName] ?? 5;
+    
+    const accomplished = r?.accomplished ?? 0;
     const computed = computeCategory(key, accomplished, target);
 
-    worksheet.getCell(map.target).value = target;
-    worksheet.getCell(map.accomplished).value = accomplished;
-    worksheet.getCell(map.Q).value =
-      r?.q_score != null ? Number(r.q_score) : computed.Q;
-    worksheet.getCell(map.E).value =
-      r?.e_score != null ? Number(r.e_score) : computed.E;
-    worksheet.getCell(map.T).value =
-      r?.t_score != null ? Number(r.t_score) : computed.T;
-    worksheet.getCell(map.rating).value =
-      r?.rating != null ? Number(r.rating) : computed.rating;
+    worksheet.getCell(map.target).value = Number(target);
+    worksheet.getCell(map.accomplished).value = Number(accomplished);
+    worksheet.getCell(map.Q).value = r?.q_score ?? computed.Q;
+    worksheet.getCell(map.E).value = r?.e_score ?? computed.E;
+    worksheet.getCell(map.T).value = r?.t_score ?? computed.T;
+    worksheet.getCell(map.rating).value = r?.rating ?? computed.rating;
 
+    // DATE LOGIC: DB Record -> Global Semester Config -> Empty
     if (map.dateCell) {
-      const selectedDate = map.dateType === "end" ? r?.end_date : r?.start_date;
-      if (selectedDate) worksheet.getCell(map.dateCell).value = selectedDate;
+      const recordDate = map.dateType === "start" ? r?.start_date : r?.end_date;
+      const globalDate = map.dateType === "start" ? config.start_date : config.end_date;
+      worksheet.getCell(map.dateCell).value = recordDate || globalDate || "";
     }
 
-    if (map.submissionDate && r?.submission_date) {
-      worksheet.getCell(map.submissionDate).value = r.submission_date;
-    }
-
-    if (map.folderLink && r?.folder_link) {
-      worksheet.getCell(map.folderLink).value = r.folder_link;
-    }
+    if (map.submissionDate) worksheet.getCell(map.submissionDate).value = r?.submission_date || "";
+    if (map.folderLink) worksheet.getCell(map.folderLink).value = r?.folder_link || "";
   });
 
-  // ✅ FINAL RATING FORMULA
+  // 5. FINAL RATING FORMULA
   worksheet.getCell("H85").value = {
-    formula:
-      'IFERROR((AVERAGE(I19:I22,I24:I25,I27:I28,I30:I32,I34,I36,I38))*INS+(AVERAGE(I41:I47))*RES+(AVERAGE(I50:I54))*EXT+(AVERAGE(I57,I59,I61,I63,I65,I67,I69,I71,I73))*SUPT+IFERROR((AVERAGE(I76:I83))*DGT,0),"")',
+    formula: 'IFERROR((AVERAGE(I19:I22,I24:I25,I27:I28,I30:I32,I34,I36,I38))*INS+(AVERAGE(I41:I47))*RES+(AVERAGE(I50:I54))*EXT+(AVERAGE(I57,I59,I61,I63,I65,I67,I69,I71,I73))*SUPT+IFERROR((AVERAGE(I76:I83))*DGT,0),"")',
   };
-
   worksheet.getCell("H85").result = null;
 
   return await workbook.xlsx.writeBuffer();

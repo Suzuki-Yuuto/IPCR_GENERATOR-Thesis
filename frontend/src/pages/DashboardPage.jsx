@@ -14,6 +14,7 @@ const DashboardPage = ({
   onExport,
   selectedYear,
   selectedSemester,
+  onGoToTargets,
 }) => {
   const [viewMode, setViewMode] = useState("category");
 
@@ -216,8 +217,27 @@ const DashboardPage = ({
     );
   }
 
+  // Check if user has set targets for this period
+  const noTargetsSet = Object.values(ipcrData).some(d => d.hasTargets === false);
+
   return (
     <div className="max-w-6xl mx-auto space-y-10 py-8 px-4 sm:px-6 lg:px-8 bg-gray-50/30 min-h-screen">
+      {/* No-targets banner */}
+      {noTargetsSet && onGoToTargets && (
+        <div className="flex items-center justify-between gap-4 bg-amber-50 border border-amber-200 rounded-xl px-5 py-3.5 text-sm">
+          <span className="text-amber-700">
+            ⚠️ You haven&apos;t set targets for{" "}
+            <strong>{selectedYear} · {selectedSemester}</strong> yet. Targets default to
+            5 until you customize them.
+          </span>
+          <button
+            onClick={onGoToTargets}
+            className="shrink-0 text-amber-700 font-semibold underline underline-offset-2 hover:text-amber-900 transition-colors"
+          >
+            Set Targets →
+          </button>
+        </div>
+      )}
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-gray-100">
         <div>

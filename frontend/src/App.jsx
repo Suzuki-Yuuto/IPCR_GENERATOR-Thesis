@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import DefaultTarget from '../../shared/defaultTarget.json';
 import { API_URL, ACADEMIC_YEARS, SEMESTERS } from './constants';
 
 // Layout
@@ -12,42 +11,23 @@ import DashboardPage from './pages/DashboardPage';
 import UploadPage from './pages/UploadPage';
 import ProfilePage from './pages/ProfilePage';
 import AdminPanel from './pages/AdminPanel';
+import TargetSetup from './pages/TargetSetup';
 
-const EMPTY_IPCR = {
-  syllabus:     { target: DefaultTarget.syllabus,     accomplished: 0, submitted: null },
-  courseGuide:  { target: DefaultTarget.courseGuide,  accomplished: 0, submitted: null },
-  slm:          { target: DefaultTarget.slm,          accomplished: 0, submitted: null },
-  gradingSheet: { target: DefaultTarget.gradingSheet, accomplished: 0, submitted: null },
-  tos:          { target: DefaultTarget.tos,          accomplished: 0, submitted: null },
-  attendanceSheet: { target: DefaultTarget.attendanceSheet, accomplished: 0, submitted: null },
-  classRecord: { target: DefaultTarget.classRecord, accomplished: 0, submitted: null },
-  evaluationOfTeachingEffectiveness: { target: DefaultTarget.evaluationOfTeachingEffectiveness, accomplished: 0, submitted: null },
-  classroomObservation: { target: DefaultTarget.classroomObservation, accomplished: 0, submitted: null },
-  testQuestions: { target: DefaultTarget.testQuestions, accomplished: 0, submitted: null },
-  answerKeys: { target: DefaultTarget.answerKeys, accomplished: 0, submitted: null },
-  facultyAndStudentsSeekAdvices: { target: DefaultTarget.facultyAndStudentsSeekAdvices, accomplished: 0, submitted: null },
-  accomplishmentReport: { target: DefaultTarget.accomplishmentReport, accomplished: 0, submitted: null },
-  randdProposal: { target: DefaultTarget.randdProposal, accomplished: 0, submitted: null },
-  researchImplemented: { target: DefaultTarget.researchImplemented, accomplished: 0, submitted: null },
-  researchPresented: { target: DefaultTarget.researchPresented, accomplished: 0, submitted: null },
-  researchPublished: { target: DefaultTarget.researchPublished, accomplished: 0, submitted: null },
-  intellectualPropertyRights: { target: DefaultTarget.intellectualPropertyRights, accomplished: 0, submitted: null },
-  researchUtilizedDeveloped: { target: DefaultTarget.researchUtilizedDeveloped, accomplished: 0, submitted: null },
-  numberOfCitations: { target: DefaultTarget.numberOfCitations, accomplished: 0, submitted: null },
-  extentionProposal: { target: DefaultTarget.extentionProposal, accomplished: 0, submitted: null },
-  personsTrained: { target: DefaultTarget.personsTrained, accomplished: 0, submitted: null },
-  personServiceRating: { target: DefaultTarget.personServiceRating, accomplished: 0, submitted: null },
-  personGivenTraining: { target: DefaultTarget.personGivenTraining, accomplished: 0, submitted: null },
-  technicalAdvice: { target: DefaultTarget.technicalAdvice, accomplished: 0, submitted: null },
-  attendanceFlagCeremony: { target: DefaultTarget.attendanceFlagCeremony, accomplished: 0, submitted: null },
-  attendanceFlagLowering: { target: DefaultTarget.attendanceFlagLowering, accomplished: 0, submitted: null },
-  attendanceHealthAndWellnessProgram: { target: DefaultTarget.attendanceHealthAndWellnessProgram, accomplished: 0, submitted: null },
-  attendanceSchoolCelebrations: { target: DefaultTarget.attendanceSchoolCelebrations, accomplished: 0, submitted: null },
-  trainingSeminarConferenceCertificate: { target: DefaultTarget.trainingSeminarConferenceCertificate, accomplished: 0, submitted: null },
-  atttendanceFacultyMeeting: { target: DefaultTarget.atttendanceFacultyMeeting, accomplished: 0, submitted: null },
-  attendanceISOAndRelatedActivities: { target: DefaultTarget.attendanceISOAndRelatedActivities, accomplished: 0, submitted: null },
-  attendaceSpiritualActivities: { target: DefaultTarget.attendaceSpiritualActivities, accomplished: 0, submitted: null },
-};
+// Zero-based IPCR structure — real targets come from user_targets in DB
+const EMPTY_IPCR = Object.fromEntries(
+  [
+    'syllabus','courseGuide','slm','gradingSheet','tos','attendanceSheet',
+    'classRecord','evaluationOfTeachingEffectiveness','classroomObservation',
+    'testQuestions','answerKeys','facultyAndStudentsSeekAdvices','accomplishmentReport',
+    'randdProposal','researchImplemented','researchPresented','researchPublished',
+    'intellectualPropertyRights','researchUtilizedDeveloped','numberOfCitations',
+    'extentionProposal','personsTrained','personServiceRating','personGivenTraining',
+    'technicalAdvice','accomplishmentReportSupport','attendanceFlagCeremony',
+    'attendanceFlagLowering','attendanceHealthAndWellnessProgram','attendanceSchoolCelebrations',
+    'trainingSeminarConferenceCertificate','atttendanceFacultyMeeting',
+    'attendanceISOAndRelatedActivities','attendaceSpiritualActivities',
+  ].map(k => [k, { target: 5, accomplished: 0, submitted: null, hasTargets: false }])
+);
 
 const App = () => {
   // ── Auth ────────────────────────────────────────────────────────────────────
@@ -275,6 +255,7 @@ const App = () => {
         onExport={exportToExcel}
         selectedYear={selectedYear}
         selectedSemester={selectedSemester}
+        onGoToTargets={() => setCurrentPage('targets')}
       />
     ),
     upload: (
@@ -290,6 +271,14 @@ const App = () => {
       />
     ),
     profile: <ProfilePage user={user} />,
+    targets: user.role !== 'admin' ? (
+      <TargetSetup
+        user={user}
+        selectedYear={selectedYear}
+        selectedSemester={selectedSemester}
+        onTargetsSaved={() => fetchIPCRData(user.id, selectedYear, selectedSemester)}
+      />
+    ) : null,
     admin: user.role === 'admin' ? (
       <AdminPanel
         adminData={adminData}

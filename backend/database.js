@@ -142,6 +142,106 @@ db.serialize(() => {
 
 
   /**
+   * USER TARGETS TABLE
+   * Per-user, per-semester target values (replaces static defaultTarget.json).
+   */
+  db.run(`
+    CREATE TABLE IF NOT EXISTS user_targets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      academic_year TEXT NOT NULL,
+      semester TEXT NOT NULL,
+      syllabus INTEGER DEFAULT 5,
+      course_guide INTEGER DEFAULT 5,
+      slm INTEGER DEFAULT 5,
+      grading_sheet INTEGER DEFAULT 5,
+      tos INTEGER DEFAULT 5,
+      attendance_sheet INTEGER DEFAULT 5,
+      class_record INTEGER DEFAULT 5,
+      evaluation_of_teaching_effectiveness INTEGER DEFAULT 5,
+      classroom_observation INTEGER DEFAULT 5,
+      test_questions INTEGER DEFAULT 5,
+      answer_keys INTEGER DEFAULT 5,
+      faculty_and_students_seek_advices INTEGER DEFAULT 5,
+      accomplishment_report INTEGER DEFAULT 5,
+      randd_proposal INTEGER DEFAULT 5,
+      research_implemented INTEGER DEFAULT 5,
+      research_presented INTEGER DEFAULT 5,
+      research_published INTEGER DEFAULT 5,
+      intellectual_property_rights INTEGER DEFAULT 5,
+      research_utilized_developed INTEGER DEFAULT 5,
+      number_of_citations INTEGER DEFAULT 5,
+      extention_proposal INTEGER DEFAULT 5,
+      persons_trained INTEGER DEFAULT 5,
+      person_service_rating INTEGER DEFAULT 5,
+      person_given_training INTEGER DEFAULT 5,
+      technical_advice INTEGER DEFAULT 5,
+      accomplishment_report_support INTEGER DEFAULT 5,
+      attendance_flag_ceremony INTEGER DEFAULT 5,
+      attendance_flag_lowering INTEGER DEFAULT 5,
+      attendance_health_and_wellness_program INTEGER DEFAULT 5,
+      attendance_school_celebrations INTEGER DEFAULT 5,
+      training_seminar_conference_certificate INTEGER DEFAULT 5,
+      atttendance_faculty_meeting INTEGER DEFAULT 5,
+      attendance_iso_and_related_activities INTEGER DEFAULT 5,
+      attendace_spiritual_activities INTEGER DEFAULT 5,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id),
+      UNIQUE(user_id, academic_year, semester)
+    )
+  `);
+
+
+  /**
+   * TARGET PRESETS TABLE
+   * Named presets that users can save and reuse across periods.
+   */
+  db.run(`
+    CREATE TABLE IF NOT EXISTS target_presets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      preset_name TEXT NOT NULL,
+      syllabus INTEGER DEFAULT 5,
+      course_guide INTEGER DEFAULT 5,
+      slm INTEGER DEFAULT 5,
+      grading_sheet INTEGER DEFAULT 5,
+      tos INTEGER DEFAULT 5,
+      attendance_sheet INTEGER DEFAULT 5,
+      class_record INTEGER DEFAULT 5,
+      evaluation_of_teaching_effectiveness INTEGER DEFAULT 5,
+      classroom_observation INTEGER DEFAULT 5,
+      test_questions INTEGER DEFAULT 5,
+      answer_keys INTEGER DEFAULT 5,
+      faculty_and_students_seek_advices INTEGER DEFAULT 5,
+      accomplishment_report INTEGER DEFAULT 5,
+      randd_proposal INTEGER DEFAULT 5,
+      research_implemented INTEGER DEFAULT 5,
+      research_presented INTEGER DEFAULT 5,
+      research_published INTEGER DEFAULT 5,
+      intellectual_property_rights INTEGER DEFAULT 5,
+      research_utilized_developed INTEGER DEFAULT 5,
+      number_of_citations INTEGER DEFAULT 5,
+      extention_proposal INTEGER DEFAULT 5,
+      persons_trained INTEGER DEFAULT 5,
+      person_service_rating INTEGER DEFAULT 5,
+      person_given_training INTEGER DEFAULT 5,
+      technical_advice INTEGER DEFAULT 5,
+      accomplishment_report_support INTEGER DEFAULT 5,
+      attendance_flag_ceremony INTEGER DEFAULT 5,
+      attendance_flag_lowering INTEGER DEFAULT 5,
+      attendance_health_and_wellness_program INTEGER DEFAULT 5,
+      attendance_school_celebrations INTEGER DEFAULT 5,
+      training_seminar_conference_certificate INTEGER DEFAULT 5,
+      atttendance_faculty_meeting INTEGER DEFAULT 5,
+      attendance_iso_and_related_activities INTEGER DEFAULT 5,
+      attendace_spiritual_activities INTEGER DEFAULT 5,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    )
+  `);
+
+
+  /**
    * INDEXES
    */
   db.run(`CREATE INDEX IF NOT EXISTS idx_documents_user ON documents(user_id)`);
