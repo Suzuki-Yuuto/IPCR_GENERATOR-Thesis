@@ -5,6 +5,7 @@ ml-service/.venv/
 backend/.env
 backend/ipcr.db
 backend/node_modules/
+backend/uploads/
 
 frontend/node_modules/
 frontend/dist/
