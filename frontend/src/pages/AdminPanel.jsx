@@ -3,7 +3,6 @@ import { Search, Save, Calendar, BookOpen, CheckCircle, AlertCircle, ChevronDown
 import { API_URL } from '../constants';
 
 const AdminPanel = ({ adminData, selectedYear, selectedSemester, onConfigSaved, availableYears = [], availableSemesters = [] }) => {
-  const [configYear, setConfigYear] = useState(selectedYear || availableYears[0] || '');
   const [configSemester, setConfigSemester] = useState(selectedSemester || availableSemesters[0] || '');
   const [configStartDate, setConfigStartDate] = useState('');
   const [configEndDate, setConfigEndDate] = useState('');
@@ -18,7 +17,6 @@ const AdminPanel = ({ adminData, selectedYear, selectedSemester, onConfigSaved, 
     fetch(`${API_URL}/semester-config`)
       .then(r => r.json())
       .then(data => {
-        if (data.academic_year) setConfigYear(data.academic_year);
         if (data.semester) setConfigSemester(data.semester);
         if (data.start_date) setConfigStartDate(data.start_date);
         if (data.end_date) setConfigEndDate(data.end_date);
@@ -29,41 +27,24 @@ const AdminPanel = ({ adminData, selectedYear, selectedSemester, onConfigSaved, 
   const handleSaveConfig = async () => {
     setSaveStatus('saving');
     try {
-      let finalSchoolYear = configYear;
-
-      // If admin provided dates, update/create the school year dates
-      if (configStartDate && configEndDate) {
-        const updateRes = await fetch(`${API_URL}/academic-years/${configYear}/${configSemester}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            startDate: configStartDate,
-            endDate: configEndDate,
-          }),
-        });
-        const updateData = await updateRes.json();
-        if (updateData.success && updateData.schoolYear) {
-          finalSchoolYear = updateData.schoolYear;
-        } else {
-          setSaveStatus('error');
-          return;
-        }
+      if (!configStartDate || !configEndDate) {
+        setSaveStatus('error');
+        return;
       }
 
       const res = await fetch(`${API_URL}/semester-config`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          academic_year: finalSchoolYear,
           semester: configSemester,
-          start_date: configStartDate || null,
-          end_date: configEndDate || null,
+          start_date: configStartDate,
+          end_date: configEndDate,
         }),
       });
       const data = await res.json();
       if (data.success) {
         setSaveStatus('ok');
-        if (onConfigSaved) onConfigSaved(finalSchoolYear, configSemester);
+        if (onConfigSaved) onConfigSaved(data.academic_year, configSemester);
         setTimeout(() => setSaveStatus(null), 3000);
       } else {
         setSaveStatus('error');
@@ -124,19 +105,7 @@ const AdminPanel = ({ adminData, selectedYear, selectedSemester, onConfigSaved, 
           <h2 className="text-sm font-semibold text-gray-900 tracking-wide uppercase mb-6 flex items-center gap-2">
             <Calendar className="w-4 h-4 text-gray-400" /> System Configuration
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Year</label>
-              <select
-                value={configYear}
-                onChange={e => setConfigYear(e.target.value)}
-                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-              >
-                {availableYears.map(y => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Semester</label>
               <select

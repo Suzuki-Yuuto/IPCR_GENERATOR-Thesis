@@ -17,6 +17,8 @@ const academicYearsRoutes = require("./routes/academicYears");
 const GoogleDriveService = require("./utils/googleDrive");
 const { saveIPCR } = require("./saveIPCR");
 const initializeAcademicYears = require("./utils/initializeAcademicYears");
+const detectSchoolYear = require("./utils/detectSchoolYear");
+const createSchoolYearIfMissing = require("./utils/createSchoolYearIfMissing");
 
 const app = express();
 const upload = multer({ dest: "uploads/" });
@@ -118,29 +120,60 @@ app.get("/api/semester-config", (req, res) => {
 /**
  * POST /api/semester-config
  * Admin saves/updates the active semester configuration.
- * Body: { academic_year, semester, start_date, end_date }
+ * Body: { semester, start_date, end_date }
  */
-app.post("/api/semester-config", (req, res) => {
-  const { academic_year, semester, start_date, end_date } = req.body;
+app.post("/api/semester-config", async (req, res) => {
+  const { semester, start_date, end_date } = req.body;
 
-  if (!academic_year || !semester) {
-    return res.status(400).json({ error: "academic_year and semester are required" });
+  if (!semester || !start_date || !end_date) {
+    return res.status(400).json({ error: "semester, start_date, and end_date are required" });
   }
 
-  // Deactivate all existing configs, then insert new active one
-  db.run(`UPDATE semester_config SET is_active = 0`, (err) => {
-    if (err) return res.status(500).json({ error: err.message });
+  try {
+    // 1. Detect school year
+    const academic_year = detectSchoolYear(start_date, end_date);
 
-    db.run(
-      `INSERT INTO semester_config (academic_year, semester, start_date, end_date, is_active)
-       VALUES (?, ?, ?, ?, 1)`,
-      [academic_year, semester, start_date || null, end_date || null],
-      function (err2) {
-        if (err2) return res.status(500).json({ error: err2.message });
-        res.json({ success: true, id: this.lastID, academic_year, semester, start_date, end_date });
-      }
-    );
-  });
+    // 2 & 3. Create if missing
+    await createSchoolYearIfMissing(academic_year);
+
+    // 4. Update academic_years table dates
+    let startCol, endCol;
+    if (semester === '1st' || semester === '1st Semester') {
+      startCol = 'first_sem_start';
+      endCol = 'first_sem_end';
+    } else if (semester === '2nd' || semester === '2nd Semester') {
+      startCol = 'second_sem_start';
+      endCol = 'second_sem_end';
+    }
+
+    if (startCol && endCol) {
+      await new Promise((resolve, reject) => {
+        db.run(
+          `UPDATE academic_years SET ${startCol} = ?, ${endCol} = ? WHERE school_year = ?`,
+          [start_date, end_date, academic_year],
+          (err) => err ? reject(err) : resolve()
+        );
+      });
+    }
+
+    // 5. Deactivate all existing configs, then insert new active one
+    db.run(`UPDATE semester_config SET is_active = 0`, (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      db.run(
+        `INSERT INTO semester_config (academic_year, semester, start_date, end_date, is_active)
+         VALUES (?, ?, ?, ?, 1)`,
+        [academic_year, semester, start_date, end_date],
+        function (err2) {
+          if (err2) return res.status(500).json({ error: err2.message });
+          res.json({ success: true, id: this.lastID, academic_year, semester, start_date, end_date });
+        }
+      );
+    });
+  } catch (error) {
+    console.error("Error in /api/semester-config:", error);
+    res.status(500).json({ error: error.message || error });
+  }
 });
 
 // ──────────────────────────────────────────────────────────────────────────────
