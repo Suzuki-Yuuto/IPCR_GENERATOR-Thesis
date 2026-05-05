@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { API_URL, ACADEMIC_YEARS, SEMESTERS } from './constants';
+import { API_URL } from './constants';
 
 // Layout
 import Header from './components/Header';
@@ -37,8 +37,10 @@ const App = () => {
   const [currentPage, setCurrentPage] = useState('dashboard');
 
   // ── Academic Period ───────────────────────────────────────────────────────
-  const [selectedYear,     setSelectedYear]     = useState(ACADEMIC_YEARS[2]); // 2025-2026
-  const [selectedSemester, setSelectedSemester] = useState(SEMESTERS[0]);      // 1st Semester
+  const [availableYears,   setAvailableYears]   = useState([]);
+  const [availableSemesters, setAvailableSemesters] = useState(['1st Semester', '2nd Semester']);
+  const [selectedYear,     setSelectedYear]     = useState('');
+  const [selectedSemester, setSelectedSemester] = useState('');
 
   // ── Data ─────────────────────────────────────────────────────────────────
   const [ipcrData,       setIpcrData]       = useState(EMPTY_IPCR);
@@ -47,6 +49,16 @@ const App = () => {
   const [isUploading,    setIsUploading]    = useState(false);
 
   // ── API helpers ──────────────────────────────────────────────────────────
+
+  const fetchAcademicYears = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_URL}/academic-years`);
+      const data = await res.json();
+      setAvailableYears(data.map(d => d.school_year));
+    } catch (error) {
+      console.error('Error fetching academic years:', error);
+    }
+  }, []);
 
   const fetchSemesterConfig = useCallback(async () => {
     try {
@@ -107,6 +119,7 @@ const App = () => {
 
     const initUser = async (userData) => {
       setUser(userData);
+      fetchAcademicYears();
       // First resolve the active semester config so all fetches use the right defaults
       let year = selectedYear;
       let sem  = selectedSemester;
@@ -268,6 +281,8 @@ const App = () => {
         selectedSemester={selectedSemester}
         onYearChange={setSelectedYear}
         onSemesterChange={setSelectedSemester}
+        availableYears={availableYears}
+        availableSemesters={availableSemesters}
       />
     ),
     profile: <ProfilePage user={user} />,
@@ -277,6 +292,8 @@ const App = () => {
         selectedYear={selectedYear}
         selectedSemester={selectedSemester}
         onTargetsSaved={() => fetchIPCRData(user.id, selectedYear, selectedSemester)}
+        availableYears={availableYears}
+        availableSemesters={availableSemesters}
       />
     ) : null,
     admin: user.role === 'admin' ? (
@@ -285,6 +302,8 @@ const App = () => {
         selectedYear={selectedYear}
         selectedSemester={selectedSemester}
         onConfigSaved={handleConfigSaved}
+        availableYears={availableYears}
+        availableSemesters={availableSemesters}
       />
     ) : null,
   };
@@ -301,6 +320,8 @@ const App = () => {
           setSelectedYear={setSelectedYear}
           selectedSemester={selectedSemester}
           setSelectedSemester={setSelectedSemester}
+          availableYears={availableYears}
+          availableSemesters={availableSemesters}
         />
         {pageMap[currentPage]}
       </div>

@@ -242,6 +242,22 @@ db.serialize(() => {
 
 
   /**
+   * ACADEMIC YEARS TABLE
+   * Dynamically stores school years and semester dates.
+   */
+  db.run(`
+    CREATE TABLE IF NOT EXISTS academic_years (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      school_year TEXT UNIQUE NOT NULL,
+      first_sem_start TEXT,
+      first_sem_end TEXT,
+      second_sem_start TEXT,
+      second_sem_end TEXT
+    )
+  `);
+
+
+  /**
    * INDEXES
    */
   db.run(`CREATE INDEX IF NOT EXISTS idx_documents_user ON documents(user_id)`);

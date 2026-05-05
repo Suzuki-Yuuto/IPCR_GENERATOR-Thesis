@@ -9,7 +9,7 @@ import {
   Target,
   CheckCircle2,
 } from "lucide-react";
-import { API_URL, CATEGORY_NAMES, CATEGORY_GROUPS, GROUP_NAMES, ACADEMIC_YEARS, SEMESTERS } from "../constants";
+import { API_URL, CATEGORY_NAMES, CATEGORY_GROUPS, GROUP_NAMES } from "../constants";
 
 // ─── Ordered list of all category keys ────────────────────────────────────────
 const ALL_KEYS = [
@@ -39,7 +39,7 @@ const GROUPS = {
   ],
 };
 
-const TargetSetup = ({ user, selectedYear, selectedSemester, onTargetsSaved }) => {
+const TargetSetup = ({ user, selectedYear, selectedSemester, onTargetsSaved, availableYears = [], availableSemesters = [] }) => {
   const [year, setYear]       = useState(selectedYear);
   const [semester, setSem]    = useState(selectedSemester);
   const [targets, setTargets] = useState(INITIAL_TARGETS());
@@ -208,7 +208,7 @@ const TargetSetup = ({ user, selectedYear, selectedSemester, onTargetsSaved }) =
               onChange={(e) => setYear(e.target.value)}
               className="text-sm font-medium text-gray-900 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-gray-300"
             >
-              {ACADEMIC_YEARS.map((y) => (
+              {availableYears.map((y) => (
                 <option key={y} value={y}>{y}</option>
               ))}
             </select>
@@ -222,7 +222,7 @@ const TargetSetup = ({ user, selectedYear, selectedSemester, onTargetsSaved }) =
               onChange={(e) => setSem(e.target.value)}
               className="text-sm font-medium text-gray-900 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-gray-300"
             >
-              {SEMESTERS.map((s) => (
+              {availableSemesters.map((s) => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>

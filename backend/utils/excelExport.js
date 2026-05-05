@@ -34,6 +34,7 @@ const META_DATA_MAPPING = [
     format: "I, {{val}}, Instructor III of the Laguna State Polytechnic University, commit to deliver and agree to be rated on the attainment of the",
   },
   { key: "department", cell: "A14", format: "{{val.upper}}" },
+  {key: "period", cell: "A7", format: " following  in accordance with the indicated measures for the {{val}}"},
 ];
 
 /**
@@ -152,10 +153,13 @@ async function exportIPCRToExcel(userId, academicYear, semester) {
     const metaUser = {
       name: user.display_name || user.name,
       department: user.display_department || user.department,
+      period: `${activeSem} of Academic Year ${activeYear}`,  
     };
     META_DATA_MAPPING.forEach((item) => {
       const dbValue = (metaUser[item.key] || "").toString();
-      let finalString = item.format.replace("{{val.upper}}", dbValue.toUpperCase()).replace("{{val}}", dbValue);
+      let finalString = item.format
+        .replace("{{val.upper}}", dbValue.toUpperCase())
+        .replace("{{val}}", dbValue);
       worksheet.getCell(item.cell).value = finalString;
     });
   }

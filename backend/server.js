@@ -13,8 +13,10 @@ const db = require("./database");
 const authRoutes = require("./routes/auth");
 const targetsRoutes = require("./routes/targets");
 const presetsRoutes = require("./routes/presets");
+const academicYearsRoutes = require("./routes/academicYears");
 const GoogleDriveService = require("./utils/googleDrive");
 const { saveIPCR } = require("./saveIPCR");
+const initializeAcademicYears = require("./utils/initializeAcademicYears");
 
 const app = express();
 const upload = multer({ dest: "uploads/" });
@@ -23,10 +25,14 @@ app.use(cors());
 app.use(express.json());
 fs.ensureDirSync("uploads");
 
+// Initialize default academic years
+initializeAcademicYears();
+
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api", targetsRoutes);
 app.use("/api", presetsRoutes);
+app.use("/api", academicYearsRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => res.json({ status: "ok", timestamp: new Date() }));

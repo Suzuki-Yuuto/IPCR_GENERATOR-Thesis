@@ -1,8 +1,7 @@
 import React from 'react';
 import { Home, Upload, User, Shield, BookOpen, Calendar, Target } from 'lucide-react';
-import { ACADEMIC_YEARS, SEMESTERS } from '../constants';
 
-const NavBar = ({ currentPage, setCurrentPage, isAdmin, selectedYear, setSelectedYear, selectedSemester, setSelectedSemester }) => {
+const NavBar = ({ currentPage, setCurrentPage, isAdmin, selectedYear, setSelectedYear, selectedSemester, setSelectedSemester, availableYears = [], availableSemesters = [] }) => {
   const btnClass = (page) =>
     `flex items-center gap-2 px-4 py-2.5 transition-all whitespace-nowrap text-sm rounded-xl ${
       currentPage === page 
@@ -47,7 +46,7 @@ const NavBar = ({ currentPage, setCurrentPage, isAdmin, selectedYear, setSelecte
             onChange={(e) => setSelectedYear(e.target.value)}
             className="bg-transparent border-none text-sm font-medium focus:ring-0 cursor-pointer p-0 outline-none w-auto pr-4"
           >
-            {ACADEMIC_YEARS.map(y => (
+            {availableYears.map(y => (
               <option key={y} value={y}>{y}</option>
             ))}
           </select>
@@ -59,7 +58,7 @@ const NavBar = ({ currentPage, setCurrentPage, isAdmin, selectedYear, setSelecte
             onChange={(e) => setSelectedSemester(e.target.value)}
             className="bg-transparent border-none text-sm font-medium focus:ring-0 cursor-pointer p-0 outline-none w-auto pr-4"
           >
-            {SEMESTERS.map(s => (
+            {availableSemesters.map(s => (
               <option key={s} value={s}>{s}</option>
             ))}
           </select>

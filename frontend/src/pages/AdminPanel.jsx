@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Save, Calendar, BookOpen, CheckCircle, AlertCircle, ChevronDown, ChevronUp, ExternalLink, FileText, User, FolderOpen, Loader2 } from 'lucide-react';
-import { API_URL, ACADEMIC_YEARS, SEMESTERS } from '../constants';
+import { API_URL } from '../constants';
 
-const AdminPanel = ({ adminData, selectedYear, selectedSemester, onConfigSaved }) => {
-  const [configYear, setConfigYear] = useState(selectedYear || ACADEMIC_YEARS[2]);
-  const [configSemester, setConfigSemester] = useState(selectedSemester || SEMESTERS[0]);
+const AdminPanel = ({ adminData, selectedYear, selectedSemester, onConfigSaved, availableYears = [], availableSemesters = [] }) => {
+  const [configYear, setConfigYear] = useState(selectedYear || availableYears[0] || '');
+  const [configSemester, setConfigSemester] = useState(selectedSemester || availableSemesters[0] || '');
   const [configStartDate, setConfigStartDate] = useState('');
   const [configEndDate, setConfigEndDate] = useState('');
   const [saveStatus, setSaveStatus] = useState(null);
@@ -29,11 +29,32 @@ const AdminPanel = ({ adminData, selectedYear, selectedSemester, onConfigSaved }
   const handleSaveConfig = async () => {
     setSaveStatus('saving');
     try {
+      let finalSchoolYear = configYear;
+
+      // If admin provided dates, update/create the school year dates
+      if (configStartDate && configEndDate) {
+        const updateRes = await fetch(`${API_URL}/academic-years/${configYear}/${configSemester}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            startDate: configStartDate,
+            endDate: configEndDate,
+          }),
+        });
+        const updateData = await updateRes.json();
+        if (updateData.success && updateData.schoolYear) {
+          finalSchoolYear = updateData.schoolYear;
+        } else {
+          setSaveStatus('error');
+          return;
+        }
+      }
+
       const res = await fetch(`${API_URL}/semester-config`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          academic_year: configYear,
+          academic_year: finalSchoolYear,
           semester: configSemester,
           start_date: configStartDate || null,
           end_date: configEndDate || null,
@@ -42,7 +63,7 @@ const AdminPanel = ({ adminData, selectedYear, selectedSemester, onConfigSaved }
       const data = await res.json();
       if (data.success) {
         setSaveStatus('ok');
-        if (onConfigSaved) onConfigSaved(configYear, configSemester);
+        if (onConfigSaved) onConfigSaved(finalSchoolYear, configSemester);
         setTimeout(() => setSaveStatus(null), 3000);
       } else {
         setSaveStatus('error');
@@ -111,7 +132,7 @@ const AdminPanel = ({ adminData, selectedYear, selectedSemester, onConfigSaved }
                 onChange={e => setConfigYear(e.target.value)}
                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
               >
-                {ACADEMIC_YEARS.map(y => (
+                {availableYears.map(y => (
                   <option key={y} value={y}>{y}</option>
                 ))}
               </select>
@@ -123,7 +144,7 @@ const AdminPanel = ({ adminData, selectedYear, selectedSemester, onConfigSaved }
                 onChange={e => setConfigSemester(e.target.value)}
                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
               >
-                {SEMESTERS.map(s => (
+                {availableSemesters.map(s => (
                   <option key={s} value={s}>{s}</option>
                 ))}
               </select>

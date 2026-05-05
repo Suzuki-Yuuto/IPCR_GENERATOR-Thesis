@@ -36,17 +36,7 @@ export const CATEGORY_NAMES = {
   attendaceSpiritualActivities: 'Attendance Spiritual Activities',
 };
 
-export const ACADEMIC_YEARS = [
-  '2023-2024',
-  '2024-2025',
-  '2025-2026',
-  '2026-2027',
-];
 
-export const SEMESTERS = [
-  '1st Semester',
-  '2nd Semester',
-];
 
 export const CATEGORY_GROUPS = {
   instruction: [
