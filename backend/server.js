@@ -288,6 +288,86 @@ app.post("/api/ipcr/targets", async (req, res) => {
 });
 
 // ──────────────────────────────────────────────────────────────────────────────
+// MANUAL ACCOMPLISHMENTS
+// ──────────────────────────────────────────────────────────────────────────────
+
+app.post("/api/accomplishments/manual", upload.single("file"), async (req, res) => {
+  try {
+    const { userId, title, date, venue, scope, hours, sponsoredBy, researchRelated, academicYear, semester, facultyName, tokens } = req.body;
+    const file = req.file;
+    
+    if (!userId || !title || !date || !file) {
+      if (file && fs.existsSync(file.path)) await fs.remove(file.path);
+      return res.status(400).json({ error: "Missing required fields or file" });
+    }
+
+    if (!tokens) {
+      if (file && fs.existsSync(file.path)) await fs.remove(file.path);
+      return res.status(403).json({ error: "Google Drive not connected." });
+    }
+
+    const userTokens = typeof tokens === "string" ? JSON.parse(tokens) : tokens;
+    let driveLink = "";
+
+    try {
+      const driveService = new GoogleDriveService(userTokens);
+      const driveResult = await driveService.uploadFile(
+        file.path,
+        file.originalname,
+        "Training/Seminar/Conference Certificate",
+        academicYear,
+        semester,
+        facultyName || "Faculty"
+      );
+      if (driveResult && driveResult.webViewLink) {
+        driveLink = driveResult.webViewLink;
+      } else {
+        throw new Error("Failed to get Google Drive link.");
+      }
+    } catch (err) {
+      console.warn("Manual drive upload failed:", err.message);
+      if (fs.existsSync(file.path)) await fs.remove(file.path);
+      return res.status(500).json({ error: "Google Drive upload failed." });
+    }
+
+    db.run(
+      `INSERT INTO faculty_accomplishments 
+       (user_id, title, date, venue, scope, hours, sponsored_by, gdrive_link, research_related, academic_year, semester) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [userId, title, date, venue, scope, hours, sponsoredBy, driveLink, researchRelated, academicYear, semester],
+      async function(err) {
+        if (err) {
+          return res.status(500).json({ error: err.message });
+        }
+        
+        // Update IPCR record count for Training/Seminar/Conference Certificate
+        const category = "Training/Seminar/Conference Certificate";
+        
+        const row = await new Promise((resolve, reject) =>
+          db.get(
+            `SELECT target, accomplished FROM ipcr_records
+             WHERE user_id = ? AND category = ? AND academic_year = ? AND semester = ?`,
+            [userId, category, academicYear, semester],
+            (err, r) => (err ? reject(err) : resolve(r))
+          )
+        );
+
+        const target = row?.target || 5; // Default 5
+        const accomplished = (row?.accomplished || 0) + 1;
+
+        await saveIPCR(userId, category, accomplished, target, academicYear, semester);
+        
+        res.json({ success: true });
+      }
+    );
+  } catch (err) {
+    console.error("Manual accomplishment error:", err);
+    if (req.file && fs.existsSync(req.file.path)) await fs.remove(req.file.path);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
 // DOCUMENT UPLOAD
 // ──────────────────────────────────────────────────────────────────────────────
 
@@ -454,6 +534,43 @@ app.get("/api/ipcr/export/:userId", async (req, res) => {
     res.send(buffer);
   } catch (err) {
     console.error("Excel export error:", err);
+    res.status(500).json({ error: "Failed to generate Excel file" });
+  }
+});
+
+/**
+ * GET /api/accomplishments/export-all
+ * Optional query params: ?year=&semester=&requesterId=
+ */
+app.get("/api/accomplishments/export-all", async (req, res) => {
+  try {
+    const requesterId = req.query.requesterId;
+    if (!requesterId) {
+      return res.status(403).json({ error: "Forbidden: Requester ID is missing." });
+    }
+
+    const requester = await new Promise((resolve, reject) => {
+      db.get('SELECT role FROM users WHERE id = ?', [requesterId], (err, row) => {
+        err ? reject(err) : resolve(row);
+      });
+    });
+
+    if (!requester || requester.role !== 'admin') {
+      return res.status(403).json({ error: "Forbidden: Admin access required." });
+    }
+
+    const { exportManualAccomplishmentsToExcel } = require("./utils/excelExport");
+    const active = await getActiveConfig();
+    const academicYear = req.query.year     || active.academic_year;
+    const semester     = req.query.semester || active.semester;
+
+    const buffer = await exportManualAccomplishmentsToExcel(academicYear, semester);
+
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader("Content-Disposition", `attachment; filename=All_Faculty_Accomplishments_${academicYear}_${semester}.xlsx`);
+    res.send(buffer);
+  } catch (err) {
+    console.error("Accomplishments export error:", err);
     res.status(500).json({ error: "Failed to generate Excel file" });
   }
 });

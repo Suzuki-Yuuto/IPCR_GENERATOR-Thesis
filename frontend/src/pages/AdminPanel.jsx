@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Save, Calendar, BookOpen, CheckCircle, AlertCircle, ChevronDown, ChevronUp, ExternalLink, FileText, User, FolderOpen, Loader2 } from 'lucide-react';
+import { Search, Save, Calendar, BookOpen, CheckCircle, AlertCircle, ChevronDown, ChevronUp, ExternalLink, FileText, User, FolderOpen, Loader2, Download } from 'lucide-react';
 import { API_URL } from '../constants';
 
-const AdminPanel = ({ adminData, selectedYear, selectedSemester, onConfigSaved, availableYears = [], availableSemesters = [] }) => {
+const AdminPanel = ({ currentUser, adminData, selectedYear, selectedSemester, onConfigSaved, availableYears = [], availableSemesters = [] }) => {
   const [configSemester, setConfigSemester] = useState(selectedSemester || availableSemesters[0] || '');
   const [configStartDate, setConfigStartDate] = useState('');
   const [configEndDate, setConfigEndDate] = useState('');
@@ -81,6 +81,34 @@ const AdminPanel = ({ adminData, selectedYear, selectedSemester, onConfigSaved, 
     (faculty.department || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleExportAccomplishments = async () => {
+    try {
+      const params = new URLSearchParams({ 
+        year: selectedYear, 
+        semester: selectedSemester,
+        requesterId: currentUser?.id 
+      });
+      const res = await fetch(`${API_URL}/accomplishments/export-all?${params}`);
+      if (!res.ok) {
+        if (res.status === 403) throw new Error('Forbidden: Admin access required');
+        throw new Error('Export failed');
+      }
+      const blob = await res.blob();
+      const url  = window.URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = `All_Faculty_Accomplishments_${selectedYear}_${selectedSemester}_${Date.now()}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      alert('✅ All Faculty Accomplishments exported successfully!');
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('❌ Export failed: ' + error.message);
+    }
+  };
+
   const folderLinkLabels = {
     syllabus: { label: 'Syllabus', icon: '📄' },
     courseGuide: { label: 'Course Guide', icon: '📄' },
@@ -98,6 +126,15 @@ const AdminPanel = ({ adminData, selectedYear, selectedSemester, onConfigSaved, 
           <div>
             <h1 className="text-3xl font-light text-gray-900 tracking-tight">Admin System</h1>
             <p className="text-sm text-gray-500 mt-2">Manage academic periods and view faculty data.</p>
+          </div>
+          <div>
+            <button
+              onClick={handleExportAccomplishments}
+              className="group flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl shadow-sm hover:shadow transition-all"
+            >
+              <Download className="w-4 h-4 group-hover:-translate-y-0.5 transition-transform" />
+              Export All Accomplishments
+            </button>
           </div>
         </div>
 
@@ -263,7 +300,7 @@ const AdminPanel = ({ adminData, selectedYear, selectedSemester, onConfigSaved, 
                                   <FileText className="w-3.5 h-3.5" /> Recent Uploads
                                 </h4>
                                 {(facultyDetail.documents || []).length > 0 ? (
-                                  <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+                                  <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-6">
                                     <table className="w-full text-left text-sm">
                                       <thead className="bg-gray-50 border-b border-gray-200">
                                         <tr>
@@ -282,7 +319,7 @@ const AdminPanel = ({ adminData, selectedYear, selectedSemester, onConfigSaved, 
                                     </table>
                                   </div>
                                 ) : (
-                                  <p className="text-sm text-gray-400 italic">No files submitted.</p>
+                                  <p className="text-sm text-gray-400 italic mb-6">No files submitted.</p>
                                 )}
                               </div>
                             </div>
