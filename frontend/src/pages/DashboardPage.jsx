@@ -281,7 +281,7 @@ const DashboardPage = ({
             className="group flex items-center gap-2 px-5 py-2.5 bg-gray-900 hover:bg-black text-white text-sm font-medium rounded-xl shadow-sm hover:shadow transition-all"
           >
             <Download className="w-4 h-4 group-hover:-translate-y-0.5 transition-transform" />
-            Export
+            Export IPCR
           </button>
         </div>
       </div>

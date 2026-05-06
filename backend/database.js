@@ -242,6 +242,30 @@ db.serialize(() => {
 
 
   /**
+   * FACULTY ACCOMPLISHMENTS TABLE
+   * Stores manually inputted accomplishments for Excel routing.
+   */
+  db.run(`
+    CREATE TABLE IF NOT EXISTS faculty_accomplishments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      title TEXT NOT NULL,
+      date DATE,
+      venue TEXT,
+      scope TEXT,
+      hours INTEGER,
+      sponsored_by TEXT,
+      gdrive_link TEXT,
+      research_related TEXT,
+      academic_year TEXT DEFAULT '2023-2024',
+      semester TEXT DEFAULT '1st',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    )
+  `);
+
+
+  /**
    * ACADEMIC YEARS TABLE
    * Dynamically stores school years and semester dates.
    */

@@ -248,6 +248,7 @@ const App = () => {
     }
   };
 
+
   /** Called by AdminPanel after a config save; syncs global state. */
   const handleConfigSaved = (year, semester) => {
     setSelectedYear(year);
@@ -283,10 +284,11 @@ const App = () => {
         onSemesterChange={setSelectedSemester}
         availableYears={availableYears}
         availableSemesters={availableSemesters}
+        onManualSubmitSuccess={() => fetchIPCRData(user.id, selectedYear, selectedSemester)}
       />
     ),
     profile: <ProfilePage user={user} />,
-    targets: user.role !== 'admin' ? (
+    targets: (
       <TargetSetup
         user={user}
         selectedYear={selectedYear}
@@ -295,9 +297,10 @@ const App = () => {
         availableYears={availableYears}
         availableSemesters={availableSemesters}
       />
-    ) : null,
+    ),
     admin: user.role === 'admin' ? (
       <AdminPanel
+        currentUser={user}
         adminData={adminData}
         selectedYear={selectedYear}
         selectedSemester={selectedSemester}

@@ -24,12 +24,10 @@ const NavBar = ({ currentPage, setCurrentPage, isAdmin, selectedYear, setSelecte
           <User className="w-4 h-4" />
           Profile
         </button>
-        {!isAdmin && (
-          <button onClick={() => setCurrentPage('targets')} className={btnClass('targets')}>
-            <Target className="w-4 h-4" />
-            Targets
-          </button>
-        )}
+        <button onClick={() => setCurrentPage('targets')} className={btnClass('targets')}>
+          <Target className="w-4 h-4" />
+          Targets
+        </button>
         {isAdmin && (
           <button onClick={() => setCurrentPage('admin')} className={btnClass('admin')}>
             <Shield className="w-4 h-4" />

@@ -204,4 +204,66 @@ async function exportIPCRToExcel(userId, academicYear, semester) {
   return await workbook.xlsx.writeBuffer();
 }
 
-module.exports = { exportIPCRToExcel };
+async function exportManualAccomplishmentsToExcel(academicYear, semester) {
+  const workbook = new ExcelJS.Workbook();
+  const template2Path = path.resolve(__dirname, "Template2.xlsx");
+  
+  if (fs.existsSync(template2Path)) {
+    await workbook.xlsx.readFile(template2Path);
+  } else {
+    // Fallback: Create sheets if template doesn't exist
+    workbook.addWorksheet("1st Quarter");
+    workbook.addWorksheet("2nd Quarter");
+    workbook.addWorksheet("3rd Quarter");
+    workbook.addWorksheet("4th Quarter");
+  }
+
+  const records = await new Promise((resolve, reject) => {
+    db.all(
+      `SELECT fa.*, u.name as participants 
+       FROM faculty_accomplishments fa
+       JOIN users u ON fa.user_id = u.id
+       WHERE fa.academic_year = ? AND fa.semester = ?`,
+      [academicYear, semester],
+      (err, rows) => (err ? reject(err) : resolve(rows || []))
+    );
+  });
+
+  records.forEach(record => {
+    if (!record.date) return;
+    
+    const dateObj = new Date(record.date);
+    const month = dateObj.getMonth(); // 0-11
+    
+    let sheetName = "1st Quarter";
+    if (month >= 0 && month <= 2) sheetName = "1st Quarter";
+    else if (month >= 3 && month <= 5) sheetName = "2nd Quarter";
+    else if (month >= 6 && month <= 8) sheetName = "3rd Quarter";
+    else if (month >= 9 && month <= 11) sheetName = "4th Quarter";
+
+    const ws = workbook.getWorksheet(sheetName);
+    if (ws) {
+      if (!ws.nextRowIndex) ws.nextRowIndex = 3;
+      
+      const row = ws.getRow(ws.nextRowIndex);
+      row.values = [
+        record.title,
+        record.date,
+        record.venue,
+        record.participants,
+        record.scope,
+        record.hours,
+        record.sponsored_by,
+        record.gdrive_link,
+        record.research_related
+      ];
+      row.commit();
+      
+      ws.nextRowIndex += 1;
+    }
+  });
+
+  return await workbook.xlsx.writeBuffer();
+}
+
+module.exports = { exportIPCRToExcel, exportManualAccomplishmentsToExcel };
