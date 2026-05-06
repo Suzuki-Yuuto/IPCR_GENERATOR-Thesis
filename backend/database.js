@@ -302,14 +302,47 @@ db.serialize(() => {
   addColumnIfMissing('ipcr_records', 'q_score', 'REAL DEFAULT 0');
   addColumnIfMissing('ipcr_records', 'e_score', 'REAL DEFAULT 0');
   addColumnIfMissing('ipcr_records', 't_score', 'REAL DEFAULT 0');
-  addColumnIfMissing('ipcr_records', 'rating',  'REAL DEFAULT 0');
+  addColumnIfMissing('ipcr_records', 'rating', 'REAL DEFAULT 0');
 
   // New semester date columns
   addColumnIfMissing('ipcr_records', 'start_date', 'DATE');
-  addColumnIfMissing('ipcr_records', 'end_date',   'DATE');
+  addColumnIfMissing('ipcr_records', 'end_date', 'DATE');
 
   // Google Drive folder link column (one per category row)
   addColumnIfMissing('ipcr_records', 'folder_link', 'TEXT');
+
+  // Faculty Accomplishment / User role additions
+  addColumnIfMissing('users', 'is_regular_faculty', 'INTEGER DEFAULT 1');
+  addColumnIfMissing('faculty_accomplishments', 'accomplishment_category', 'TEXT');
+  addColumnIfMissing('faculty_accomplishments', 'target_presentation', 'INTEGER');
+  addColumnIfMissing('faculty_accomplishments', 'target_publication', 'INTEGER');
+  addColumnIfMissing('faculty_accomplishments', 'target_utilized', 'INTEGER');
+  addColumnIfMissing('faculty_accomplishments', 'acc_presentation', 'INTEGER');
+  addColumnIfMissing('faculty_accomplishments', 'acc_publication', 'INTEGER');
+  addColumnIfMissing('faculty_accomplishments', 'acc_utilized', 'INTEGER');
+  addColumnIfMissing('faculty_accomplishments', 'stat_proposal', 'INTEGER');
+  addColumnIfMissing('faculty_accomplishments', 'stat_completed', 'INTEGER');
+  addColumnIfMissing('faculty_accomplishments', 'stat_presented', 'INTEGER');
+  addColumnIfMissing('faculty_accomplishments', 'stat_ip_rights', 'INTEGER');
+  addColumnIfMissing('faculty_accomplishments', 'stat_utilized', 'INTEGER');
+  addColumnIfMissing('faculty_accomplishments', 'stat_citations', 'INTEGER');
+  addColumnIfMissing('faculty_accomplishments', 'extension_personnel', 'TEXT');
+  addColumnIfMissing('faculty_accomplishments', 'beneficiaries', 'TEXT');
+  addColumnIfMissing('faculty_accomplishments', 'budget_allocation', 'TEXT');
+  addColumnIfMissing('faculty_accomplishments', 'evaluation', 'REAL');
+  addColumnIfMissing('faculty_accomplishments', 'admin_scopus', 'INTEGER');
+  addColumnIfMissing('faculty_accomplishments', 'admin_rg', 'INTEGER');
+  addColumnIfMissing('faculty_accomplishments', 'admin_gs', 'INTEGER');
+  addColumnIfMissing('faculty_accomplishments', 'ext_total_target', 'INTEGER');
+  addColumnIfMissing('faculty_accomplishments', 'ext_row7', 'TEXT');
+  addColumnIfMissing('faculty_accomplishments', 'ext_row8', 'TEXT');
+  addColumnIfMissing('faculty_accomplishments', 'ext_row9', 'TEXT');
+  addColumnIfMissing('faculty_accomplishments', 'extension_individual_data', 'TEXT');
+  addColumnIfMissing('faculty_accomplishments', 'totalExtensionTarget', 'INTEGER');
+  addColumnIfMissing('faculty_accomplishments', 'active_partnerships_data', 'TEXT');
+  addColumnIfMissing('faculty_accomplishments', 'trainees_accomplishment_data', 'TEXT');
+  addColumnIfMissing('faculty_accomplishments', 'extension_programs_data', 'TEXT');
+
 
   /**
    * SEED: default semester_config if none exists

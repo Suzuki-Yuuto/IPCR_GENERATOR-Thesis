@@ -188,8 +188,8 @@ app.post("/api/semester-config", async (req, res) => {
 app.get("/api/ipcr/:userId", async (req, res) => {
   const userId = parseInt(req.params.userId, 10) || req.params.userId;
   const active = await getActiveConfig();
-  const academicYear = req.query.year     || active.academic_year;
-  const semester     = req.query.semester || active.semester;
+  const academicYear = req.query.year || active.academic_year;
+  const semester = req.query.semester || active.semester;
 
   try {
     // 1. Load user-specific targets for this period (fallback to 5)
@@ -270,8 +270,8 @@ app.get("/api/ipcr/:userId", async (req, res) => {
 app.post("/api/ipcr/targets", async (req, res) => {
   const { userId, targets, year, semester } = req.body;
   const active = await getActiveConfig();
-  const academicYear = year     || active.academic_year;
-  const sem          = semester || active.semester;
+  const academicYear = year || active.academic_year;
+  const sem = semester || active.semester;
 
   Object.entries(targets).forEach(([key, value]) => {
     const category = categoryMap[key];
@@ -288,61 +288,112 @@ app.post("/api/ipcr/targets", async (req, res) => {
 });
 
 // ──────────────────────────────────────────────────────────────────────────────
-// MANUAL ACCOMPLISHMENTS
+// MANUAL ACCOMPLISHMENTS & USERS
 // ──────────────────────────────────────────────────────────────────────────────
+
+app.get("/api/users/regular", (req, res) => {
+  db.all(
+    `SELECT id, name FROM users WHERE is_regular_faculty = 1 ORDER BY name ASC`,
+    [],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(rows);
+    }
+  );
+});
 
 app.post("/api/accomplishments/manual", upload.single("file"), async (req, res) => {
   try {
-    const { userId, title, date, venue, scope, hours, sponsoredBy, researchRelated, academicYear, semester, facultyName, tokens } = req.body;
+    const {
+      userId, title, date, venue, scope, hours, sponsoredBy, researchRelated,
+      academicYear, semester, facultyName, tokens,
+      accomplishment_category,
+      target_presentation, target_publication, target_utilized,
+      acc_presentation, acc_publication, acc_utilized,
+      stat_proposal, stat_completed, stat_presented, stat_ip_rights, stat_utilized, stat_citations,
+      admin_scopus, admin_rg, admin_gs,
+      totalExtensionTarget, active_partnerships_data, trainees_accomplishment_data, extension_programs_data, extension_individual_data,
+      ext_row9,
+      extension_personnel, beneficiaries, budget_allocation, evaluation
+    } = req.body;
     const file = req.file;
-    
-    if (!userId || !title || !date || !file) {
+
+    const requiresFile = (accomplishment_category === 'Seminars, Conferences, and Training');
+
+    if (!userId || !title || !date || (requiresFile && !file)) {
       if (file && fs.existsSync(file.path)) await fs.remove(file.path);
       return res.status(400).json({ error: "Missing required fields or file" });
     }
 
-    if (!tokens) {
-      if (file && fs.existsSync(file.path)) await fs.remove(file.path);
-      return res.status(403).json({ error: "Google Drive not connected." });
-    }
-
-    const userTokens = typeof tokens === "string" ? JSON.parse(tokens) : tokens;
     let driveLink = "";
 
-    try {
-      const driveService = new GoogleDriveService(userTokens);
-      const driveResult = await driveService.uploadFile(
-        file.path,
-        file.originalname,
-        "Training/Seminar/Conference Certificate",
-        academicYear,
-        semester,
-        facultyName || "Faculty"
-      );
-      if (driveResult && driveResult.webViewLink) {
-        driveLink = driveResult.webViewLink;
-      } else {
-        throw new Error("Failed to get Google Drive link.");
+    if (file) {
+      if (!tokens) {
+        if (fs.existsSync(file.path)) await fs.remove(file.path);
+        return res.status(403).json({ error: "Google Drive not connected." });
       }
-    } catch (err) {
-      console.warn("Manual drive upload failed:", err.message);
-      if (fs.existsSync(file.path)) await fs.remove(file.path);
-      return res.status(500).json({ error: "Google Drive upload failed." });
+
+      const userTokens = typeof tokens === "string" ? JSON.parse(tokens) : tokens;
+
+      try {
+        const driveService = new GoogleDriveService(userTokens);
+        const driveResult = await driveService.uploadFile(
+          file.path,
+          file.originalname,
+          "Training/Seminar/Conference Certificate",
+          academicYear,
+          semester,
+          facultyName || "Faculty"
+        );
+        if (driveResult && driveResult.webViewLink) {
+          driveLink = driveResult.webViewLink;
+        } else {
+          throw new Error("Failed to get Google Drive link.");
+        }
+      } catch (err) {
+        console.warn("Manual drive upload failed:", err.message);
+        if (fs.existsSync(file.path)) await fs.remove(file.path);
+        return res.status(500).json({ error: "Google Drive upload failed." });
+      }
     }
 
     db.run(
       `INSERT INTO faculty_accomplishments 
-       (user_id, title, date, venue, scope, hours, sponsored_by, gdrive_link, research_related, academic_year, semester) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [userId, title, date, venue, scope, hours, sponsoredBy, driveLink, researchRelated, academicYear, semester],
-      async function(err) {
+       (user_id, title, date, venue, scope, hours, sponsored_by, gdrive_link, research_related, academic_year, semester,
+        accomplishment_category, target_presentation, target_publication, target_utilized,
+        acc_presentation, acc_publication, acc_utilized, stat_proposal, stat_completed,
+        stat_presented, stat_ip_rights, stat_utilized, stat_citations,
+        extension_personnel, beneficiaries, budget_allocation, evaluation,
+        admin_scopus, admin_rg, admin_gs,
+        totalExtensionTarget, active_partnerships_data, trainees_accomplishment_data, extension_programs_data, extension_individual_data) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [userId, title, date, venue, scope, hours, sponsoredBy, driveLink, researchRelated, academicYear, semester,
+        accomplishment_category || 'Seminars, Conferences, and Training',
+        Math.max(0, Number(target_presentation)) || null,
+        Math.max(0, Number(target_publication)) || null,
+        Math.max(0, Number(target_utilized)) || null,
+        Math.max(0, Number(acc_presentation)) || null,
+        Math.max(0, Number(acc_publication)) || null,
+        Math.max(0, Number(acc_utilized)) || null,
+        Math.max(0, Number(stat_proposal)) || null,
+        Math.max(0, Number(stat_completed)) || null,
+        Math.max(0, Number(stat_presented)) || null,
+        Math.max(0, Number(stat_ip_rights)) || null,
+        Math.max(0, Number(stat_utilized)) || null,
+        Math.max(0, Number(stat_citations)) || null,
+        extension_personnel || null, beneficiaries || null, budget_allocation || null, evaluation || null,
+        admin_scopus ? Math.max(0, Number(admin_scopus)) : null,
+        admin_rg ? Math.max(0, Number(admin_rg)) : null,
+        admin_gs ? Math.max(0, Number(admin_gs)) : null,
+        totalExtensionTarget || null, active_partnerships_data || null, trainees_accomplishment_data || null, extension_programs_data || null, extension_individual_data || null],
+      async function (err) {
         if (err) {
           return res.status(500).json({ error: err.message });
         }
-        
+
         // Update IPCR record count for Training/Seminar/Conference Certificate
         const category = "Training/Seminar/Conference Certificate";
-        
+
         const row = await new Promise((resolve, reject) =>
           db.get(
             `SELECT target, accomplished FROM ipcr_records
@@ -356,7 +407,7 @@ app.post("/api/accomplishments/manual", upload.single("file"), async (req, res) 
         const accomplished = (row?.accomplished || 0) + 1;
 
         await saveIPCR(userId, category, accomplished, target, academicYear, semester);
-        
+
         res.json({ success: true });
       }
     );
@@ -365,6 +416,29 @@ app.post("/api/accomplishments/manual", upload.single("file"), async (req, res) 
     if (req.file && fs.existsSync(req.file.path)) await fs.remove(req.file.path);
     res.status(500).json({ error: err.message });
   }
+});
+
+/**
+ * GET /api/accomplishments/history/:userId
+ * Fetch manual accomplishments for a user
+ */
+app.get("/api/accomplishments/history/:userId", async (req, res) => {
+  const userId = parseInt(req.params.userId, 10) || req.params.userId;
+  const active = await getActiveConfig();
+  const academicYear = req.query.year || active.academic_year;
+  const semester = req.query.semester || active.semester;
+
+  db.all(
+    `SELECT * FROM faculty_accomplishments 
+     WHERE (user_id = ? OR accomplishment_category = 'Extension' OR accomplishment_category = 'Research') 
+     AND academic_year = ? AND semester = ? 
+     ORDER BY created_at DESC`,
+    [userId, academicYear, semester],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(rows);
+    }
+  );
 });
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -377,17 +451,17 @@ app.post("/api/accomplishments/manual", upload.single("file"), async (req, res) 
  */
 app.post("/api/documents/upload", upload.array("files"), async (req, res) => {
   try {
-    const rawUserId   = req.body.userId;
-    const userId      = parseInt(rawUserId, 10) || rawUserId;
-    const tokens      = req.body.tokens;
-    const files       = req.files;
+    const rawUserId = req.body.userId;
+    const userId = parseInt(rawUserId, 10) || rawUserId;
+    const tokens = req.body.tokens;
+    const files = req.files;
     const facultyName = req.body.facultyName || "Faculty";
 
     if (!files || files.length === 0) return res.status(400).json({ error: "No files uploaded" });
 
     const active = await getActiveConfig();
-    const academicYear = req.body.year     || active.academic_year;
-    const semester     = req.body.semester || active.semester;
+    const academicYear = req.body.year || active.academic_year;
+    const semester = req.body.semester || active.semester;
 
     const userTokens = tokens ? (typeof tokens === "string" ? JSON.parse(tokens) : tokens) : null;
     const results = [];
@@ -429,7 +503,7 @@ app.post("/api/documents/upload", upload.array("files"), async (req, res) => {
         }
 
         const driveUploaded = !!driveResult;
-        const driveId   = driveUploaded ? driveResult.fileId   : Math.random().toString(36).substring(7);
+        const driveId = driveUploaded ? driveResult.fileId : Math.random().toString(36).substring(7);
         const driveLink = driveUploaded ? driveResult.webViewLink : `https://drive.google.com/file/d/${driveId}`;
 
         // Save document info (with year + semester)
@@ -439,7 +513,7 @@ app.post("/api/documents/upload", upload.array("files"), async (req, res) => {
             google_drive_id, google_drive_link, academic_year, semester)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [userId, file.filename, file.originalname, file.size, dbCategory,
-           confidence, driveId, driveLink, academicYear, semester]
+            confidence, driveId, driveLink, academicYear, semester]
         );
 
         // Update IPCR record (scoped to year + semester)
@@ -452,7 +526,7 @@ app.post("/api/documents/upload", upload.array("files"), async (req, res) => {
           )
         );
 
-        const target       = row?.target      || 0;
+        const target = row?.target || 0;
         const accomplished = (row?.accomplished || 0) + 1;
 
         await saveIPCR(userId, dbCategory, accomplished, target, academicYear, semester);
@@ -496,8 +570,8 @@ app.post("/api/documents/upload", upload.array("files"), async (req, res) => {
 app.get("/api/documents/:userId", async (req, res) => {
   const { userId } = req.params;
   const active = await getActiveConfig();
-  const academicYear = req.query.year     || active.academic_year;
-  const semester     = req.query.semester || active.semester;
+  const academicYear = req.query.year || active.academic_year;
+  const semester = req.query.semester || active.semester;
 
   const query = `
     SELECT id, original_filename as name, file_size as size, category,
@@ -524,8 +598,8 @@ app.get("/api/ipcr/export/:userId", async (req, res) => {
   try {
     const { exportIPCRToExcel } = require("./utils/excelExport");
     const active = await getActiveConfig();
-    const academicYear = req.query.year     || active.academic_year;
-    const semester     = req.query.semester || active.semester;
+    const academicYear = req.query.year || active.academic_year;
+    const semester = req.query.semester || active.semester;
 
     const buffer = await exportIPCRToExcel(req.params.userId, academicYear, semester);
 
@@ -561,8 +635,8 @@ app.get("/api/accomplishments/export-all", async (req, res) => {
 
     const { exportManualAccomplishmentsToExcel } = require("./utils/excelExport");
     const active = await getActiveConfig();
-    const academicYear = req.query.year     || active.academic_year;
-    const semester     = req.query.semester || active.semester;
+    const academicYear = req.query.year || active.academic_year;
+    const semester = req.query.semester || active.semester;
 
     const buffer = await exportManualAccomplishmentsToExcel(academicYear, semester);
 
@@ -589,7 +663,7 @@ app.get("/api/profile/:userId", (req, res) => {
   // First try user_profiles, then fall back to users
   db.get(
     `SELECT up.name, up.department, up.position, up.contact_number, up.notes, up.updated_at,
-            u.email, u.profile_image, u.role
+            u.email, u.profile_image, u.role, u.is_regular_faculty
      FROM users u
      LEFT JOIN user_profiles up ON u.id = up.user_id
      WHERE u.id = ?`,
@@ -599,7 +673,7 @@ app.get("/api/profile/:userId", (req, res) => {
       if (!row) return res.status(404).json({ error: "User not found" });
 
       // If no profile row exists yet, use data from users table
-      db.get(`SELECT name, department FROM users WHERE id = ?`, [userId], (err2, userRow) => {
+      db.get(`SELECT name, department, is_regular_faculty FROM users WHERE id = ?`, [userId], (err2, userRow) => {
         if (err2) return res.status(500).json({ error: err2.message });
 
         res.json({
@@ -611,6 +685,7 @@ app.get("/api/profile/:userId", (req, res) => {
           email: row.email || '',
           profile_image: row.profile_image || '',
           role: row.role || 'professor',
+          is_regular_faculty: row.is_regular_faculty !== null ? row.is_regular_faculty : (userRow && userRow.is_regular_faculty !== null ? userRow.is_regular_faculty : 1),
           updated_at: row.updated_at || null,
         });
       });
@@ -625,7 +700,7 @@ app.get("/api/profile/:userId", (req, res) => {
  */
 app.put("/api/profile/:userId", (req, res) => {
   const userId = parseInt(req.params.userId, 10) || req.params.userId;
-  const { name, department, position, contact_number, notes } = req.body;
+  const { name, department, position, contact_number, notes, is_regular_faculty } = req.body;
 
   const upsertSql = `
     INSERT INTO user_profiles (user_id, name, department, position, contact_number, notes, updated_at)
@@ -642,10 +717,10 @@ app.put("/api/profile/:userId", (req, res) => {
   db.run(upsertSql, [userId, name || null, department || null, position || null, contact_number || null, notes || null], function (err) {
     if (err) return res.status(500).json({ error: err.message });
 
-    // Also update the users table name and department so it reflects everywhere
+    // Also update the users table name, department, and is_regular_faculty so it reflects everywhere
     db.run(
-      `UPDATE users SET name = COALESCE(?, name), department = COALESCE(?, department) WHERE id = ?`,
-      [name || null, department || null, userId],
+      `UPDATE users SET name = COALESCE(?, name), department = COALESCE(?, department), is_regular_faculty = COALESCE(?, is_regular_faculty) WHERE id = ?`,
+      [name || null, department || null, is_regular_faculty !== undefined ? is_regular_faculty : null, userId],
       (err2) => {
         if (err2) console.error("Error syncing users table:", err2.message);
         res.json({ success: true, message: "Profile updated successfully" });
@@ -664,8 +739,8 @@ app.put("/api/profile/:userId", (req, res) => {
  */
 app.get("/api/admin/ipcr", async (req, res) => {
   const active = await getActiveConfig();
-  const academicYear = req.query.year     || active.academic_year;
-  const semester     = req.query.semester || active.semester;
+  const academicYear = req.query.year || active.academic_year;
+  const semester = req.query.semester || active.semester;
 
   const query = `
     SELECT
@@ -694,8 +769,8 @@ app.get("/api/admin/ipcr", async (req, res) => {
 app.get("/api/admin/faculty/:userId", async (req, res) => {
   const userId = parseInt(req.params.userId, 10) || req.params.userId;
   const active = await getActiveConfig();
-  const academicYear = req.query.year     || active.academic_year;
-  const semester     = req.query.semester || active.semester;
+  const academicYear = req.query.year || active.academic_year;
+  const semester = req.query.semester || active.semester;
 
   try {
     // 1. Profile info (from user_profiles + users)

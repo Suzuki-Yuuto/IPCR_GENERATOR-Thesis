@@ -216,11 +216,14 @@ async function exportManualAccomplishmentsToExcel(academicYear, semester) {
     workbook.addWorksheet("2nd Quarter");
     workbook.addWorksheet("3rd Quarter");
     workbook.addWorksheet("4th Quarter");
+    workbook.addWorksheet("Research");
+    workbook.addWorksheet("Extension");
+    workbook.addWorksheet("List of Extension");
   }
 
   const records = await new Promise((resolve, reject) => {
     db.all(
-      `SELECT fa.*, u.name as participants 
+      `SELECT fa.*, u.name as participants, u.is_regular_faculty 
        FROM faculty_accomplishments fa
        JOIN users u ON fa.user_id = u.id
        WHERE fa.academic_year = ? AND fa.semester = ?`,
@@ -229,8 +232,72 @@ async function exportManualAccomplishmentsToExcel(academicYear, semester) {
     );
   });
 
+  const historicalExtensionRecords = await new Promise((resolve, reject) => {
+    db.all(
+      `SELECT fa.*, u.name as participants, u.is_regular_faculty 
+       FROM faculty_accomplishments fa
+       JOIN users u ON fa.user_id = u.id
+       WHERE fa.accomplishment_category = 'List of Extension'
+       ORDER BY fa.date ASC`,
+      [],
+      (err, rows) => (err ? reject(err) : resolve(rows || []))
+    );
+  });
+
+  const allRegularFaculty = await new Promise((resolve, reject) => {
+    db.all(
+      `SELECT id, name FROM users WHERE is_regular_faculty = 1 ORDER BY name ASC`,
+      [],
+      (err, rows) => (err ? reject(err) : resolve(rows || []))
+    );
+  });
+
+  // Dynamic Year Parsing
+  const years = (academicYear || "2025-2026").split('-');
+  const startYear = parseInt(years[0], 10);
+  const endYear = years.length > 1 ? parseInt(years[1], 10) : startYear + 1;
+  
+  // Determine computedYear (for Q22)
+  let computedYear = startYear;
+  if (semester === '2nd Semester' || semester === '2nd') {
+      computedYear = endYear;
+  }
+  
+  // Calculate the Left and Right School Years
+  const leftSchoolYear = `${computedYear - 1}-${computedYear}`;
+  const rightSchoolYear = `${computedYear}-${computedYear + 1}`;
+
+  // Helper for Headers
+  const setHeader = (ws, cell, text) => {
+    if (!ws) return;
+    const c = ws.getCell(cell);
+    c.value = text;
+    c.font = { name: 'Poppins', bold: true };
+  };
+
+  // Sheet 1 to 4 Headers
+  setHeader(workbook.worksheets[0], "A1", `COLLEGE OF COMPUTER STUDIES\nSanta Cruz Campus\nJANUARY TO MARCH ${computedYear}\nFACULTY SEMINAR, CONFERENCE AND TRAINING`);
+  setHeader(workbook.worksheets[1], "A1", `COLLEGE OF COMPUTER STUDIES\nSanta Cruz Campus\nAPRIL TO JUNE ${computedYear}\nFACULTY SEMINAR, CONFERENCE AND TRAINING`);
+  setHeader(workbook.worksheets[2], "A1", `COLLEGE OF COMPUTER STUDIES\nSanta Cruz Campus\nJULY TO SEPTEMBER ${computedYear}\nFACULTY SEMINAR, CONFERENCE AND TRAINING`);
+  setHeader(workbook.worksheets[3], "A1", `COLLEGE OF COMPUTER STUDIES\nSanta Cruz Campus\nOCTOBER TO DECEMBER ${computedYear}\nFACULTY SEMINAR, CONFERENCE AND TRAINING`);
+
+  // Sheet 5 Headers (Research)
+  const ws5 = workbook.worksheets[4];
+  setHeader(ws5, "A20", `${computedYear} CCS Accomplishment Report`);
+
+  // Sheet 6 Headers (Extension)
+  const ws6 = workbook.worksheets[5];
+  setHeader(ws6, "A1", `CCS Extension and Services Target ${computedYear} - Santa Cruz`);
+  setHeader(ws6, "A2", `${computedYear} EXTENSION TARGET`);
+  setHeader(ws6, "C22", `2nd Semester A Y: ${leftSchoolYear}`);
+  setHeader(ws6, "G23", `2nd Semester A Y: ${leftSchoolYear}`);
+  setHeader(ws6, "J22", `1st Semester A Y: ${rightSchoolYear}`);
+  setHeader(ws6, "N23", `1st Semester A Y: ${rightSchoolYear}`);
+  setHeader(ws6, "Q22", computedYear.toString());
+
+  // Loop records to populate Quarters
   records.forEach(record => {
-    if (!record.date) return;
+    if (!record.date || record.accomplishment_category === 'Research' || record.accomplishment_category === 'Extension' || record.accomplishment_category === 'List of Extension') return;
     
     const dateObj = new Date(record.date);
     const month = dateObj.getMonth(); // 0-11
@@ -241,7 +308,7 @@ async function exportManualAccomplishmentsToExcel(academicYear, semester) {
     else if (month >= 6 && month <= 8) sheetName = "3rd Quarter";
     else if (month >= 9 && month <= 11) sheetName = "4th Quarter";
 
-    const ws = workbook.getWorksheet(sheetName);
+    const ws = workbook.getWorksheet(sheetName) || workbook.worksheets[Math.floor(month / 3)];
     if (ws) {
       if (!ws.nextRowIndex) ws.nextRowIndex = 3;
       
@@ -258,10 +325,249 @@ async function exportManualAccomplishmentsToExcel(academicYear, semester) {
         record.research_related
       ];
       row.commit();
-      
       ws.nextRowIndex += 1;
     }
   });
+
+  // Data Mapping for Research (Sheet 5)
+  if (ws5) {
+    const researchRecords = records.filter(r => r.accomplishment_category === 'Research');
+    
+    // Write global targets from the LATEST record that has them
+    const researchGlobalRecords = researchRecords.filter(r => r.target_presentation != null || r.target_publication != null);
+    const globalOpts = researchGlobalRecords.sort((a, b) => b.id - a.id)[0] || {};
+    
+    ws5.getCell('B2').value = Number(globalOpts.target_presentation) || 0;
+    ws5.getCell('B3').value = Number(globalOpts.target_publication) || 0;
+    ws5.getCell('B4').value = Number(globalOpts.target_utilized) || 0;
+    ws5.getCell('F2').value = Number(globalOpts.acc_presentation) || 0;
+    ws5.getCell('F3').value = Number(globalOpts.acc_publication) || 0;
+    ws5.getCell('F4').value = Number(globalOpts.acc_utilized) || 0;
+
+    // Apply styling to global targets
+    ['B2', 'B3', 'B4', 'F2', 'F3', 'F4'].forEach(cellAddr => {
+       const c = ws5.getCell(cellAddr);
+       c.font = { name: 'Poppins', bold: true };
+    });
+
+    // Dynamic user columns initialized with ALL regular faculty
+    const usersData = {};
+    allRegularFaculty.forEach(f => {
+      usersData[f.id] = {
+        name: f.name,
+        stat_proposal: 0, stat_completed: 0, stat_presented: 0,
+        stat_ip_rights: 0, stat_utilized: 0, stat_citations: 0
+      };
+    });
+
+    researchRecords.forEach(r => {
+      if (r.is_regular_faculty === 1 && usersData[r.user_id]) {
+        usersData[r.user_id].stat_proposal += (r.stat_proposal || 0);
+        usersData[r.user_id].stat_completed += (r.stat_completed || 0);
+        usersData[r.user_id].stat_presented += (r.stat_presented || 0);
+        usersData[r.user_id].stat_ip_rights += (r.stat_ip_rights || 0);
+        usersData[r.user_id].stat_utilized += (r.stat_utilized || 0);
+        usersData[r.user_id].stat_citations += (r.stat_citations || 0);
+      }
+    });
+
+    let colIndex = 2; // Column B (index 2)
+    Object.values(usersData).forEach(uData => {
+      ws5.getRow(6).getCell(colIndex).value = uData.name;
+      ws5.getRow(6).getCell(colIndex).font = { name: 'Poppins', bold: true };
+
+      ws5.getRow(7).getCell(colIndex).value = uData.stat_proposal;
+      ws5.getRow(8).getCell(colIndex).value = uData.stat_completed;
+      ws5.getRow(9).getCell(colIndex).value = uData.stat_presented;
+      ws5.getRow(10).getCell(colIndex).value = uData.stat_ip_rights;
+      ws5.getRow(11).getCell(colIndex).value = uData.stat_utilized;
+      ws5.getRow(12).getCell(colIndex).value = uData.stat_citations;
+
+      for (let i = 7; i <= 12; i++) {
+         ws5.getRow(i).getCell(colIndex).font = { name: 'Poppins', size: 16, bold: true };
+      }
+      colIndex++;
+    });
+
+    // Write totals
+    ws5.getRow(6).getCell(colIndex).value = "TOTAL";
+    ws5.getRow(6).getCell(colIndex).font = { name: 'Poppins', bold: true };
+    for(let rIdx = 7; rIdx <= 12; rIdx++) {
+      let rowSum = 0;
+      let tempCol = 2;
+      Object.values(usersData).forEach(() => {
+         rowSum += Number(ws5.getRow(rIdx).getCell(tempCol).value) || 0;
+         tempCol++;
+      });
+      ws5.getRow(rIdx).getCell(colIndex).value = rowSum;
+      ws5.getRow(rIdx).getCell(colIndex).font = { name: 'Poppins', size: 16, bold: true };
+    }
+    
+    // Admin Inputs mapping to B17, C17, D17
+    const adminRecord = researchRecords.find(r => r.admin_scopus != null || r.admin_rg != null || r.admin_gs != null);
+    if (adminRecord) {
+       if (adminRecord.admin_scopus != null) ws5.getCell('B17').value = adminRecord.admin_scopus;
+       if (adminRecord.admin_rg != null) ws5.getCell('C17').value = adminRecord.admin_rg;
+       if (adminRecord.admin_gs != null) ws5.getCell('D17').value = adminRecord.admin_gs;
+    }
+  }
+
+  // Data Mapping for Extension (Sheet 6)
+  if (ws6) {
+    // Find the LATEST global Extension record (sorting by date or choosing the first if already sorted)
+    const extRecords = records.filter(r => r.accomplishment_category === 'Extension' && r.totalExtensionTarget != null);
+    // Sort by id DESC to get the latest if not already sorted
+    const extRecord = extRecords.sort((a, b) => b.id - a.id)[0];
+    
+    if (extRecord) {
+      console.log('--- EXPORT DEBUG: EXTENSION GLOBAL RECORD FOUND ---');
+      console.log('ID:', extRecord.id, 'Target:', extRecord.totalExtensionTarget);
+      
+      const totalTarget = Number(extRecord.totalExtensionTarget) || 0;
+      ws6.getCell('C2').value = totalTarget;
+
+      const qTarget = Math.ceil(totalTarget / 4);
+      ['C8', 'E8', 'G8', 'I8'].forEach(cell => ws6.getCell(cell).value = qTarget);
+      ws6.getCell('K8').value = qTarget * 4;
+
+      ['A16', 'C16', 'F16', 'H16'].forEach(cell => ws6.getCell(cell).value = `Target: ${qTarget}`);
+
+      const parseJSON = (str) => { try { return JSON.parse(str); } catch(e) { return {}; } };
+      const r7 = parseJSON(extRecord.active_partnerships_data);
+      const r8 = parseJSON(extRecord.trainees_accomplishment_data);
+      const r9 = parseJSON(extRecord.extension_programs_data);
+      
+      console.log('Parsed Row 7:', r7);
+      console.log('Parsed Row 8:', r8);
+      console.log('Parsed Row 9:', r9);
+
+      // Row 7
+      ws6.getCell('C7').value = Number(r7.tq1) || 0; ws6.getCell('D7').value = Number(r7.aq1) || 0;
+      ws6.getCell('E7').value = Number(r7.tq2) || 0; ws6.getCell('F7').value = Number(r7.aq2) || 0;
+      ws6.getCell('G7').value = Number(r7.tq3) || 0; ws6.getCell('H7').value = Number(r7.aq3) || 0;
+      ws6.getCell('I7').value = Number(r7.tq4) || 0; ws6.getCell('J7').value = Number(r7.aq4) || 0;
+      ws6.getCell('K7').value = (Number(r7.tq1) || 0) + (Number(r7.tq2) || 0) + (Number(r7.tq3) || 0) + (Number(r7.tq4) || 0);
+      ws6.getCell('L7').value = (Number(r7.aq1) || 0) + (Number(r7.aq2) || 0) + (Number(r7.aq3) || 0) + (Number(r7.aq4) || 0);
+
+      // Row 8
+      ws6.getCell('D8').value = Number(r8.aq1) || 0; ws6.getCell('F8').value = Number(r8.aq2) || 0;
+      ws6.getCell('H8').value = Number(r8.aq3) || 0; ws6.getCell('J8').value = Number(r8.aq4) || 0;
+      ws6.getCell('L8').value = (Number(r8.aq1) || 0) + (Number(r8.aq2) || 0) + (Number(r8.aq3) || 0) + (Number(r8.aq4) || 0);
+
+      // Row 9
+      ws6.getCell('C9').value = Number(r9.tq1) || 0; ws6.getCell('D9').value = Number(r9.aq1) || 0;
+      ws6.getCell('E9').value = Number(r9.tq2) || 0; ws6.getCell('F9').value = Number(r9.aq2) || 0;
+      ws6.getCell('G9').value = Number(r9.tq3) || 0; ws6.getCell('H9').value = Number(r9.aq3) || 0;
+      ws6.getCell('I9').value = Number(r9.tq4) || 0; ws6.getCell('J9').value = Number(r9.aq4) || 0;
+      ws6.getCell('K9').value = (Number(r9.tq1) || 0) + (Number(r9.tq2) || 0) + (Number(r9.tq3) || 0) + (Number(r9.tq4) || 0);
+      ws6.getCell('L9').value = (Number(r9.aq1) || 0) + (Number(r9.aq2) || 0) + (Number(r9.aq3) || 0) + (Number(r9.aq4) || 0);
+
+      // Rank-Based Targets
+      const totalFaculty = allRegularFaculty.length;
+      const baseQuotient = totalFaculty > 0 ? totalTarget / totalFaculty : 0;
+      const calcTarget = (multiplier) => Math.ceil(Math.ceil(baseQuotient * multiplier) / 4);
+
+      const instructorTarget = calcTarget(1);
+      const assistantProfTarget = calcTarget(1.2);
+      const associateProfTarget = calcTarget(1.2);
+
+      ['A17', 'C17', 'E17', 'G17'].forEach(cell => ws6.getCell(cell).value = instructorTarget);
+      ['A18', 'C18', 'E18', 'G18'].forEach(cell => ws6.getCell(cell).value = assistantProfTarget);
+      ['A19', 'C19', 'E19', 'G19'].forEach(cell => ws6.getCell(cell).value = associateProfTarget);
+
+      // Dynamic Faculty Grid
+      const facultyData = parseJSON(extRecord.extension_individual_data);
+      let currentRow = 25;
+
+      const facultyProfiles = await new Promise((resolve) => {
+        db.all(`SELECT user_id, position FROM user_profiles`, [], (err, rows) => resolve(rows || []));
+      });
+
+      allRegularFaculty.forEach(faculty => {
+        const profile = facultyProfiles.find(p => p.user_id === faculty.id);
+        const rank = profile?.position || 'Instructor';
+        
+        let targetValue = instructorTarget;
+        if (rank.includes('Assistant')) targetValue = assistantProfTarget;
+        else if (rank.includes('Associate')) targetValue = associateProfTarget;
+
+        const acc = facultyData[faculty.id] || { q1: 0, q2: 0, q3: 0, q4: 0 };
+
+        const row = ws6.getRow(currentRow);
+        row.getCell(1).value = faculty.name;
+        row.getCell(2).value = rank;
+        row.getCell(3).value = targetValue;
+        row.getCell(4).value = Number(acc.q1 || 0);
+        row.getCell(5).value = targetValue;
+        row.getCell(6).value = Number(acc.q2 || 0);
+        row.getCell(7).value = targetValue * 2;
+        row.getCell(8).value = Number(acc.q1 || 0) + Number(acc.q2 || 0);
+        
+        row.getCell(10).value = targetValue;
+        row.getCell(11).value = Number(acc.q3 || 0);
+        row.getCell(12).value = targetValue;
+        row.getCell(13).value = Number(acc.q4 || 0);
+        row.getCell(14).value = targetValue * 2;
+        row.getCell(15).value = Number(acc.q3 || 0) + Number(acc.q4 || 0);
+        
+        row.getCell(17).value = targetValue * 4;
+        row.getCell(18).value = Number(acc.q1 || 0) + Number(acc.q2 || 0) + Number(acc.q3 || 0) + Number(acc.q4 || 0);
+        currentRow++;
+      });
+
+      // Vertical Sums
+      const summaryRow = ws6.getRow(currentRow);
+      for (let col = 3; col <= 18; col++) {
+        if (col === 9 || col === 16) continue;
+        let sum = 0;
+        for (let r = 25; r < currentRow; r++) {
+          sum += Number(ws6.getRow(r).getCell(col).value) || 0;
+        }
+        summaryRow.getCell(col).value = sum;
+        summaryRow.getCell(col).font = { bold: true };
+      }
+    }
+  }
+
+  // Data Mapping for Historical List of Extension (Sheet 7)
+  const ws7 = workbook.worksheets[6];
+  if (ws7 && historicalExtensionRecords.length > 0) {
+    if (!ws7.nextRowIndex) ws7.nextRowIndex = 2; // Start appending after headers
+    historicalExtensionRecords.forEach(record => {
+      let formattedExtensionists = '';
+      if (record.extension_personnel) {
+        try {
+            const parsed = JSON.parse(record.extension_personnel);
+            if (Array.isArray(parsed)) {
+                formattedExtensionists = parsed.map(g => {
+                    // Handle both the old string format and the new object format
+                    const memberNames = g.members.map(m => typeof m === 'object' ? m.name : m).filter(n => n && n.trim() !== '');
+                    return `${g.role}:\n` + memberNames.join('\n');
+                }).join('\n\n');
+            }
+        } catch(e) {}
+      }
+
+      const row = ws7.getRow(ws7.nextRowIndex);
+      row.values = [
+        `${record.semester} A.Y. ${record.academic_year}`, // A
+        record.title, // B
+        record.date, // C
+        record.beneficiaries || '', // D
+        record.venue || '', // E (Location is mapped to venue)
+        formattedExtensionists, // F
+        record.budget_allocation || 'N/A', // G
+        record.evaluation || '', // H
+        record.gdrive_link || '' // I (References mapped to gdrive_link)
+      ];
+      
+      // wrapText on F
+      row.getCell(6).alignment = { wrapText: true };
+      
+      row.commit();
+      ws7.nextRowIndex += 1;
+    });
+  }
 
   return await workbook.xlsx.writeBuffer();
 }

@@ -95,7 +95,8 @@ router.get('/google/callback', async (req, res) => {
           role: user.role,
           department: user.department,
           profileImage: picture,
-          tokens: tokens
+          tokens: tokens,
+          is_regular_faculty: user.is_regular_faculty !== null ? user.is_regular_faculty : 1
         }));
 
         res.redirect(`http://localhost:5173/auth/success?user=${userData}`);
@@ -123,7 +124,8 @@ router.get('/google/callback', async (req, res) => {
             role,
             department,
             profileImage: picture,
-            tokens: tokens
+            tokens: tokens,
+            is_regular_faculty: 1
           }));
 
           res.redirect(`http://localhost:5173/auth/success?user=${userData}`);
@@ -144,7 +146,7 @@ router.get('/me', (req, res) => {
     return res.status(401).json({ error: 'Not authenticated' });
   }
 
-  db.get('SELECT id, email, name, role, department, profile_image FROM users WHERE id = ?', [userId], (err, user) => {
+  db.get('SELECT id, email, name, role, department, profile_image, is_regular_faculty FROM users WHERE id = ?', [userId], (err, user) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
