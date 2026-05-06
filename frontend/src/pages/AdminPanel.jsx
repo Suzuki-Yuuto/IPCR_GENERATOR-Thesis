@@ -130,7 +130,7 @@ const AdminPanel = ({ currentUser, adminData, selectedYear, selectedSemester, on
           <div>
             <button
               onClick={handleExportAccomplishments}
-              className="group flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl shadow-sm hover:shadow transition-all"
+              className="group flex items-center gap-2 px-5 py-2.5 bg-gray-900 hover:bg-black text-white text-sm font-medium rounded-xl shadow-sm hover:shadow transition-all"
             >
               <Download className="w-4 h-4 group-hover:-translate-y-0.5 transition-transform" />
               Export All Accomplishments
