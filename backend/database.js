@@ -333,6 +333,15 @@ db.serialize(() => {
   addColumnIfMissing('faculty_accomplishments', 'admin_scopus', 'INTEGER');
   addColumnIfMissing('faculty_accomplishments', 'admin_rg', 'INTEGER');
   addColumnIfMissing('faculty_accomplishments', 'admin_gs', 'INTEGER');
+  addColumnIfMissing('faculty_accomplishments', 'ext_total_target', 'INTEGER');
+  addColumnIfMissing('faculty_accomplishments', 'ext_row7', 'TEXT');
+  addColumnIfMissing('faculty_accomplishments', 'ext_row8', 'TEXT');
+  addColumnIfMissing('faculty_accomplishments', 'ext_row9', 'TEXT');
+  addColumnIfMissing('faculty_accomplishments', 'extension_individual_data', 'TEXT');
+  addColumnIfMissing('faculty_accomplishments', 'totalExtensionTarget', 'INTEGER');
+  addColumnIfMissing('faculty_accomplishments', 'active_partnerships_data', 'TEXT');
+  addColumnIfMissing('faculty_accomplishments', 'trainees_accomplishment_data', 'TEXT');
+  addColumnIfMissing('faculty_accomplishments', 'extension_programs_data', 'TEXT');
 
 
   /**

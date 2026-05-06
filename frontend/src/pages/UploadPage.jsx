@@ -25,7 +25,13 @@ const UploadPage = ({ user, uploadedFiles, isUploading, onFileUpload, selectedYe
     admin_scopus: '', admin_rg: '', admin_gs: '',
     beneficiaries_count: '', beneficiaries_type: '',
     location: '', budget_allocation: '', evaluation: '', references: '',
-    is_multiple_days: false, end_date: ''
+    is_multiple_days: false, end_date: '',
+    ext_total_target: '',
+    ext_row7_tq1: '0', ext_row7_aq1: '0', ext_row7_tq2: '0', ext_row7_aq2: '0',
+    ext_row7_tq3: '0', ext_row7_aq3: '0', ext_row7_tq4: '0', ext_row7_aq4: '0',
+    ext_row8_aq1: '0', ext_row8_aq2: '0', ext_row8_aq3: '0', ext_row8_aq4: '0',
+    ext_row9_tq1: '0', ext_row9_aq1: '0', ext_row9_tq2: '0', ext_row9_aq2: '0',
+    ext_row9_tq3: '0', ext_row9_aq3: '0', ext_row9_tq4: '0', ext_row9_aq4: '0'
   };
 
   const [formData, setFormData] = useState(initialFormData);
@@ -34,6 +40,7 @@ const UploadPage = ({ user, uploadedFiles, isUploading, onFileUpload, selectedYe
   const [extensionists, setExtensionists] = useState([
     { id: Date.now(), role: 'Project Head', members: [{ name: '', isRegularFaculty: false, userId: null }] }
   ]);
+  const [individualExtData, setIndividualExtData] = useState({}); // { userId: { q1, q2, q3, q4 } }
 
   const addRoleGroup = () => {
     setExtensionists([...extensionists, { id: Date.now(), role: '', members: [{ name: '', isRegularFaculty: false, userId: null }] }]);
@@ -99,6 +106,37 @@ const UploadPage = ({ user, uploadedFiles, isUploading, onFileUpload, selectedYe
     }
   }, [isManualInput, user, selectedYear, selectedSemester]);
 
+  useEffect(() => {
+    if (isManualInput && formData.accomplishment_category === 'Extension' && history.length > 0) {
+      const extRecord = history.find(h => h.accomplishment_category === 'Extension');
+      if (extRecord) {
+        const parse = (s) => { try { return typeof s === 'string' ? JSON.parse(s) : s; } catch(e) { return null; } };
+        const r7 = parse(extRecord.active_partnerships_data) || {};
+        const r8 = parse(extRecord.trainees_accomplishment_data) || {};
+        const r9 = parse(extRecord.extension_programs_data) || {};
+        const ind = parse(extRecord.extension_individual_data) || {};
+
+        setFormData(prev => ({
+          ...prev,
+          ext_total_target: (extRecord.totalExtensionTarget !== undefined && extRecord.totalExtensionTarget !== null) ? extRecord.totalExtensionTarget : '',
+          ext_row7_tq1: r7.tq1 ?? '0', ext_row7_aq1: r7.aq1 ?? '0',
+          ext_row7_tq2: r7.tq2 ?? '0', ext_row7_aq2: r7.aq2 ?? '0',
+          ext_row7_tq3: r7.tq3 ?? '0', ext_row7_aq3: r7.aq3 ?? '0',
+          ext_row7_tq4: r7.tq4 ?? '0', ext_row7_aq4: r7.aq4 ?? '0',
+          ext_row8_aq1: r8.aq1 ?? '0', ext_row8_aq2: r8.aq2 ?? '0',
+          ext_row8_aq3: r8.aq3 ?? '0', ext_row8_aq4: r8.aq4 ?? '0',
+          ext_row9_tq1: r9.tq1 ?? '0', ext_row9_aq1: r9.aq1 ?? '0',
+          ext_row9_tq2: r9.tq2 ?? '0', ext_row9_aq2: r9.aq2 ?? '0',
+          ext_row9_tq3: r9.tq3 ?? '0', ext_row9_aq3: r9.aq3 ?? '0',
+          ext_row9_tq4: r9.tq4 ?? '0', ext_row9_aq4: r9.aq4 ?? '0',
+        }));
+        if (ind && Object.keys(ind).length > 0) {
+          setIndividualExtData(prev => ({ ...prev, ...ind }));
+        }
+      }
+    }
+  }, [formData.accomplishment_category, history, isManualInput]);
+
   const handleFileChange = (e) => {
     onFileUpload(e, selectedYear, selectedSemester);
   };
@@ -111,7 +149,19 @@ const UploadPage = ({ user, uploadedFiles, isUploading, onFileUpload, selectedYe
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    let finalValue = type === 'checkbox' ? checked : value;
+    
+    // Prevent negative integers globally for number inputs
+    if (type === 'number') {
+      if (value === '') {
+        finalValue = '';
+      } else {
+        const num = parseFloat(value);
+        finalValue = isNaN(num) ? '' : Math.max(0, num).toString();
+      }
+    }
+    
+    setFormData(prev => ({ ...prev, [name]: finalValue }));
   };
 
   const handleManualSubmit = async (e) => {
@@ -160,6 +210,34 @@ const UploadPage = ({ user, uploadedFiles, isUploading, onFileUpload, selectedYe
         }
       }
 
+      if (formData.accomplishment_category === 'Extension') {
+        const r7 = {
+            tq1: formData.ext_row7_tq1, aq1: formData.ext_row7_aq1,
+            tq2: formData.ext_row7_tq2, aq2: formData.ext_row7_aq2,
+            tq3: formData.ext_row7_tq3, aq3: formData.ext_row7_aq3,
+            tq4: formData.ext_row7_tq4, aq4: formData.ext_row7_aq4
+        };
+        const r8 = {
+            aq1: formData.ext_row8_aq1, aq2: formData.ext_row8_aq2,
+            aq3: formData.ext_row8_aq3, aq4: formData.ext_row8_aq4
+        };
+        const r9 = {
+            tq1: formData.ext_row9_tq1, aq1: formData.ext_row9_aq1,
+            tq2: formData.ext_row9_tq2, aq2: formData.ext_row9_aq2,
+            tq3: formData.ext_row9_tq3, aq3: formData.ext_row9_aq3,
+            tq4: formData.ext_row9_tq4, aq4: formData.ext_row9_aq4
+        };
+        submitData.append('totalExtensionTarget', formData.ext_total_target);
+        submitData.append('active_partnerships_data', JSON.stringify(r7));
+        submitData.append('trainees_accomplishment_data', JSON.stringify(r8));
+        submitData.append('extension_programs_data', JSON.stringify(r9));
+        submitData.append('extension_individual_data', JSON.stringify(individualExtData));
+        
+        if (!formData.title) submitData.set('title', `Extension Data ${selectedYear}`);
+        if (!formData.date) submitData.set('date', new Date().toISOString().split('T')[0]);
+        if (!formData.venue) submitData.set('venue', 'Santa Cruz Campus');
+      }
+
       submitData.append('userId', user.id);
       submitData.append('academicYear', selectedYear);
       submitData.append('semester', selectedSemester);
@@ -177,6 +255,7 @@ const UploadPage = ({ user, uploadedFiles, isUploading, onFileUpload, selectedYe
         alert('✅ Manual accomplishment saved successfully!');
         setFormData(initialFormData);
         setExtensionists([{ id: Date.now(), role: 'Project Head', members: [{ name: '', isRegularFaculty: false, userId: null }] }]);
+        setIndividualExtData({});
         setManualFile(null);
         if (onManualSubmitSuccess) onManualSubmitSuccess();
         fetchHistory();
@@ -237,7 +316,7 @@ const UploadPage = ({ user, uploadedFiles, isUploading, onFileUpload, selectedYe
                 </select>
               </div>
 
-              {(formData.accomplishment_category === 'Seminars, Conferences, and Training' || formData.accomplishment_category === 'Extension') && (
+              {formData.accomplishment_category === 'Seminars, Conferences, and Training' && (
                 <>
                   <div className="col-span-1 md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
@@ -285,6 +364,150 @@ const UploadPage = ({ user, uploadedFiles, isUploading, onFileUpload, selectedYe
                   <div className="col-span-1 md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Conducted/Sponsored by *</label>
                     <input required type="text" name="sponsoredBy" value={formData.sponsoredBy} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="Sponsor name..." />
+                  </div>
+                </>
+              )}
+
+              {formData.accomplishment_category === 'Extension' && (
+                <>
+                  <div className="col-span-1 md:col-span-2 p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                    <h3 className="text-sm font-semibold text-blue-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                       <FileText className="w-4 h-4" /> Global Extension Targets (Sheet 6)
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-blue-600 mb-1 uppercase">Extension Target</label>
+                        <input 
+                          type="number" 
+                          name="ext_total_target" 
+                          value={formData.ext_total_target} 
+                          onChange={handleInputChange} 
+                          disabled={user?.role !== 'admin'}
+                          className={`w-full rounded-lg border-blue-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border ${user?.role !== 'admin' ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}`}
+                          min="0"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="col-span-1 md:col-span-2 overflow-x-auto pt-4">
+                    <h4 className="text-xs font-bold text-gray-700 mb-3 uppercase tracking-widest">Global Rows (7, 8, 9)</h4>
+                    <table className="min-w-full text-xs border-collapse border border-gray-200 rounded-lg overflow-hidden">
+                      <thead className="bg-gray-100">
+                        <tr>
+                          <th className="border p-2 text-left">Description</th>
+                          <th className="border p-2" colSpan="2">Q1 (T/A)</th>
+                          <th className="border p-2" colSpan="2">Q2 (T/A)</th>
+                          <th className="border p-2" colSpan="2">Q3 (T/A)</th>
+                          <th className="border p-2" colSpan="2">Q4 (T/A)</th>
+                          <th className="border p-2" colSpan="2">Total (T/A)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td className="border p-2 font-medium">Row 7: Partnerships</td>
+                          <td className="border p-1"><input type="number" min="0" name="ext_row7_tq1" value={formData.ext_row7_tq1} onChange={handleInputChange} className="w-10 p-1 border rounded" /></td>
+                          <td className="border p-1"><input type="number" min="0" name="ext_row7_aq1" value={formData.ext_row7_aq1} onChange={handleInputChange} className="w-10 p-1 border rounded" /></td>
+                          <td className="border p-1"><input type="number" min="0" name="ext_row7_tq2" value={formData.ext_row7_tq2} onChange={handleInputChange} className="w-10 p-1 border rounded" /></td>
+                          <td className="border p-1"><input type="number" min="0" name="ext_row7_aq2" value={formData.ext_row7_aq2} onChange={handleInputChange} className="w-10 p-1 border rounded" /></td>
+                          <td className="border p-1"><input type="number" min="0" name="ext_row7_tq3" value={formData.ext_row7_tq3} onChange={handleInputChange} className="w-10 p-1 border rounded" /></td>
+                          <td className="border p-1"><input type="number" min="0" name="ext_row7_aq3" value={formData.ext_row7_aq3} onChange={handleInputChange} className="w-10 p-1 border rounded" /></td>
+                          <td className="border p-1"><input type="number" min="0" name="ext_row7_tq4" value={formData.ext_row7_tq4} onChange={handleInputChange} className="w-10 p-1 border rounded" /></td>
+                          <td className="border p-1"><input type="number" min="0" name="ext_row7_aq4" value={formData.ext_row7_aq4} onChange={handleInputChange} className="w-10 p-1 border rounded" /></td>
+                          <td className="border p-2 text-center font-bold bg-gray-50">
+                            {(Number(formData.ext_row7_tq1) || 0) + (Number(formData.ext_row7_tq2) || 0) + (Number(formData.ext_row7_tq3) || 0) + (Number(formData.ext_row7_tq4) || 0)}
+                          </td>
+                          <td className="border p-2 text-center font-bold bg-gray-50">
+                            {(Number(formData.ext_row7_aq1) || 0) + (Number(formData.ext_row7_aq2) || 0) + (Number(formData.ext_row7_aq3) || 0) + (Number(formData.ext_row7_aq4) || 0)}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td className="border p-2 font-medium">Row 8: Trainees</td>
+                          <td className="border p-1 bg-gray-50 text-center">-</td>
+                          <td className="border p-1"><input type="number" min="0" name="ext_row8_aq1" value={formData.ext_row8_aq1} onChange={handleInputChange} className="w-10 p-1 border rounded" /></td>
+                          <td className="border p-1 bg-gray-50 text-center">-</td>
+                          <td className="border p-1"><input type="number" min="0" name="ext_row8_aq2" value={formData.ext_row8_aq2} onChange={handleInputChange} className="w-10 p-1 border rounded" /></td>
+                          <td className="border p-1 bg-gray-50 text-center">-</td>
+                          <td className="border p-1"><input type="number" min="0" name="ext_row8_aq3" value={formData.ext_row8_aq3} onChange={handleInputChange} className="w-10 p-1 border rounded" /></td>
+                          <td className="border p-1 bg-gray-50 text-center">-</td>
+                          <td className="border p-1"><input type="number" min="0" name="ext_row8_aq4" value={formData.ext_row8_aq4} onChange={handleInputChange} className="w-10 p-1 border rounded" /></td>
+                          <td className="border p-2 text-center font-bold bg-gray-50">-</td>
+                          <td className="border p-2 text-center font-bold bg-gray-50">
+                            {(Number(formData.ext_row8_aq1) || 0) + (Number(formData.ext_row8_aq2) || 0) + (Number(formData.ext_row8_aq3) || 0) + (Number(formData.ext_row8_aq4) || 0)}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td className="border p-2 font-medium">Row 9: Programs</td>
+                          <td className="border p-1"><input type="number" min="0" name="ext_row9_tq1" value={formData.ext_row9_tq1} onChange={handleInputChange} className="w-10 p-1 border rounded" /></td>
+                          <td className="border p-1"><input type="number" min="0" name="ext_row9_aq1" value={formData.ext_row9_aq1} onChange={handleInputChange} className="w-10 p-1 border rounded" /></td>
+                          <td className="border p-1"><input type="number" min="0" name="ext_row9_tq2" value={formData.ext_row9_tq2} onChange={handleInputChange} className="w-10 p-1 border rounded" /></td>
+                          <td className="border p-1"><input type="number" min="0" name="ext_row9_aq2" value={formData.ext_row9_aq2} onChange={handleInputChange} className="w-10 p-1 border rounded" /></td>
+                          <td className="border p-1"><input type="number" min="0" name="ext_row9_tq3" value={formData.ext_row9_tq3} onChange={handleInputChange} className="w-10 p-1 border rounded" /></td>
+                          <td className="border p-1"><input type="number" min="0" name="ext_row9_aq3" value={formData.ext_row9_aq3} onChange={handleInputChange} className="w-10 p-1 border rounded" /></td>
+                          <td className="border p-1"><input type="number" min="0" name="ext_row9_tq4" value={formData.ext_row9_tq4} onChange={handleInputChange} className="w-10 p-1 border rounded" /></td>
+                          <td className="border p-1"><input type="number" min="0" name="ext_row9_aq4" value={formData.ext_row9_aq4} onChange={handleInputChange} className="w-10 p-1 border rounded" /></td>
+                          <td className="border p-2 text-center font-bold bg-gray-50">
+                            {(Number(formData.ext_row9_tq1) || 0) + (Number(formData.ext_row9_tq2) || 0) + (Number(formData.ext_row9_tq3) || 0) + (Number(formData.ext_row9_tq4) || 0)}
+                          </td>
+                          <td className="border p-2 text-center font-bold bg-gray-50">
+                            {(Number(formData.ext_row9_aq1) || 0) + (Number(formData.ext_row9_aq2) || 0) + (Number(formData.ext_row9_aq3) || 0) + (Number(formData.ext_row9_aq4) || 0)}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="col-span-1 md:col-span-2 pt-6 border-t border-gray-200 mt-4">
+                    <h4 className="text-xs font-bold text-gray-700 mb-4 uppercase tracking-widest flex items-center gap-2">
+                       <Clock className="w-4 h-4" /> Individual Faculty Grid
+                    </h4>
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full text-xs border-collapse border border-gray-200 rounded-lg overflow-hidden">
+                        <thead className="bg-gray-100">
+                          <tr>
+                            <th className="border p-2 text-left">Faculty Name</th>
+                            <th className="border p-2">Q1 Acc</th>
+                            <th className="border p-2">Q2 Acc</th>
+                            <th className="border p-2">Q3 Acc</th>
+                            <th className="border p-2">Q4 Acc</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {regularFaculty.map(f => (
+                            <tr key={f.id} className="hover:bg-gray-50">
+                              <td className="border p-2 font-medium">{f.name}</td>
+                              {['q1', 'q2', 'q3', 'q4'].map(q => (
+                                <td key={q} className="border p-1 text-center">
+                                  <input 
+                                    type="number" 
+                                    step="0.1"
+                                    min="0"
+                                    disabled={user.role !== 'admin' && String(user.id) !== String(f.id)}
+                                    value={individualExtData[f.id]?.[q] || '0'} 
+                                    onChange={(e) => {
+                                      const rawVal = e.target.value;
+                                      let val = '0';
+                                      if (rawVal !== '') {
+                                          const num = parseFloat(rawVal);
+                                          val = isNaN(num) ? '0' : Math.max(0, num).toString();
+                                      } else {
+                                          val = '';
+                                      }
+                                      setIndividualExtData(prev => ({
+                                        ...prev,
+                                        [f.id]: { ...(prev[f.id] || { q1: '0', q2: '0', q3: '0', q4: '0' }), [q]: val }
+                                      }));
+                                    }} 
+                                    className={`w-14 p-1 border rounded text-center ${(user.role !== 'admin' && String(user.id) !== String(f.id)) ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}`} 
+                                  />
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </>
               )}

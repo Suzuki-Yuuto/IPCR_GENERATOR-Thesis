@@ -311,8 +311,10 @@ app.post("/api/accomplishments/manual", upload.single("file"), async (req, res) 
       target_presentation, target_publication, target_utilized,
       acc_presentation, acc_publication, acc_utilized,
       stat_proposal, stat_completed, stat_presented, stat_ip_rights, stat_utilized, stat_citations,
-      extension_personnel, beneficiaries, budget_allocation, evaluation,
-      admin_scopus, admin_rg, admin_gs
+      admin_scopus, admin_rg, admin_gs,
+      totalExtensionTarget, active_partnerships_data, trainees_accomplishment_data, extension_programs_data, extension_individual_data,
+      ext_row9,
+      extension_personnel, beneficiaries, budget_allocation, evaluation
     } = req.body;
     const file = req.file;
 
@@ -362,8 +364,9 @@ app.post("/api/accomplishments/manual", upload.single("file"), async (req, res) 
         acc_presentation, acc_publication, acc_utilized, stat_proposal, stat_completed,
         stat_presented, stat_ip_rights, stat_utilized, stat_citations,
         extension_personnel, beneficiaries, budget_allocation, evaluation,
-        admin_scopus, admin_rg, admin_gs) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        admin_scopus, admin_rg, admin_gs,
+        totalExtensionTarget, active_partnerships_data, trainees_accomplishment_data, extension_programs_data, extension_individual_data) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [userId, title, date, venue, scope, hours, sponsoredBy, driveLink, researchRelated, academicYear, semester,
         accomplishment_category || 'Seminars, Conferences, and Training',
         target_presentation || null, target_publication || null, target_utilized || null,
@@ -371,7 +374,8 @@ app.post("/api/accomplishments/manual", upload.single("file"), async (req, res) 
         stat_proposal || null, stat_completed || null, stat_presented || null,
         stat_ip_rights || null, stat_utilized || null, stat_citations || null,
         extension_personnel || null, beneficiaries || null, budget_allocation || null, evaluation || null,
-        admin_scopus || null, admin_rg || null, admin_gs || null],
+        admin_scopus || null, admin_rg || null, admin_gs || null,
+        totalExtensionTarget || null, active_partnerships_data || null, trainees_accomplishment_data || null, extension_programs_data || null, extension_individual_data || null],
       async function (err) {
         if (err) {
           return res.status(500).json({ error: err.message });
@@ -415,7 +419,10 @@ app.get("/api/accomplishments/history/:userId", async (req, res) => {
   const semester = req.query.semester || active.semester;
 
   db.all(
-    `SELECT * FROM faculty_accomplishments WHERE user_id = ? AND academic_year = ? AND semester = ? ORDER BY created_at DESC`,
+    `SELECT * FROM faculty_accomplishments 
+     WHERE (user_id = ? OR accomplishment_category = 'Extension') 
+     AND academic_year = ? AND semester = ? 
+     ORDER BY created_at DESC`,
     [userId, academicYear, semester],
     (err, rows) => {
       if (err) return res.status(500).json({ error: err.message });

@@ -411,6 +411,123 @@ async function exportManualAccomplishmentsToExcel(academicYear, semester) {
     }
   }
 
+  // Data Mapping for Extension (Sheet 6)
+  if (ws6) {
+    // Find the LATEST global Extension record (sorting by date or choosing the first if already sorted)
+    const extRecords = records.filter(r => r.accomplishment_category === 'Extension' && r.totalExtensionTarget != null);
+    // Sort by id DESC to get the latest if not already sorted
+    const extRecord = extRecords.sort((a, b) => b.id - a.id)[0];
+    
+    if (extRecord) {
+      console.log('--- EXPORT DEBUG: EXTENSION GLOBAL RECORD FOUND ---');
+      console.log('ID:', extRecord.id, 'Target:', extRecord.totalExtensionTarget);
+      
+      const totalTarget = Number(extRecord.totalExtensionTarget) || 0;
+      ws6.getCell('C2').value = totalTarget;
+
+      const qTarget = Math.ceil(totalTarget / 4);
+      ['C8', 'E8', 'G8', 'I8'].forEach(cell => ws6.getCell(cell).value = qTarget);
+      ws6.getCell('K8').value = qTarget * 4;
+
+      ['A16', 'C16', 'F16', 'H16'].forEach(cell => ws6.getCell(cell).value = `Target: ${qTarget}`);
+
+      const parseJSON = (str) => { try { return JSON.parse(str); } catch(e) { return {}; } };
+      const r7 = parseJSON(extRecord.active_partnerships_data);
+      const r8 = parseJSON(extRecord.trainees_accomplishment_data);
+      const r9 = parseJSON(extRecord.extension_programs_data);
+      
+      console.log('Parsed Row 7:', r7);
+      console.log('Parsed Row 8:', r8);
+      console.log('Parsed Row 9:', r9);
+
+      // Row 7
+      ws6.getCell('C7').value = Number(r7.tq1) || 0; ws6.getCell('D7').value = Number(r7.aq1) || 0;
+      ws6.getCell('E7').value = Number(r7.tq2) || 0; ws6.getCell('F7').value = Number(r7.aq2) || 0;
+      ws6.getCell('G7').value = Number(r7.tq3) || 0; ws6.getCell('H7').value = Number(r7.aq3) || 0;
+      ws6.getCell('I7').value = Number(r7.tq4) || 0; ws6.getCell('J7').value = Number(r7.aq4) || 0;
+      ws6.getCell('K7').value = (Number(r7.tq1) || 0) + (Number(r7.tq2) || 0) + (Number(r7.tq3) || 0) + (Number(r7.tq4) || 0);
+      ws6.getCell('L7').value = (Number(r7.aq1) || 0) + (Number(r7.aq2) || 0) + (Number(r7.aq3) || 0) + (Number(r7.aq4) || 0);
+
+      // Row 8
+      ws6.getCell('D8').value = Number(r8.aq1) || 0; ws6.getCell('F8').value = Number(r8.aq2) || 0;
+      ws6.getCell('H8').value = Number(r8.aq3) || 0; ws6.getCell('J8').value = Number(r8.aq4) || 0;
+      ws6.getCell('L8').value = (Number(r8.aq1) || 0) + (Number(r8.aq2) || 0) + (Number(r8.aq3) || 0) + (Number(r8.aq4) || 0);
+
+      // Row 9
+      ws6.getCell('C9').value = Number(r9.tq1) || 0; ws6.getCell('D9').value = Number(r9.aq1) || 0;
+      ws6.getCell('E9').value = Number(r9.tq2) || 0; ws6.getCell('F9').value = Number(r9.aq2) || 0;
+      ws6.getCell('G9').value = Number(r9.tq3) || 0; ws6.getCell('H9').value = Number(r9.aq3) || 0;
+      ws6.getCell('I9').value = Number(r9.tq4) || 0; ws6.getCell('J9').value = Number(r9.aq4) || 0;
+      ws6.getCell('K9').value = (Number(r9.tq1) || 0) + (Number(r9.tq2) || 0) + (Number(r9.tq3) || 0) + (Number(r9.tq4) || 0);
+      ws6.getCell('L9').value = (Number(r9.aq1) || 0) + (Number(r9.aq2) || 0) + (Number(r9.aq3) || 0) + (Number(r9.aq4) || 0);
+
+      // Rank-Based Targets
+      const totalFaculty = allRegularFaculty.length;
+      const baseQuotient = totalFaculty > 0 ? totalTarget / totalFaculty : 0;
+      const calcTarget = (multiplier) => Math.ceil(Math.ceil(baseQuotient * multiplier) / 4);
+
+      const instructorTarget = calcTarget(1);
+      const assistantProfTarget = calcTarget(1.2);
+      const associateProfTarget = calcTarget(1.2);
+
+      ['A17', 'C17', 'E17', 'G17'].forEach(cell => ws6.getCell(cell).value = instructorTarget);
+      ['A18', 'C18', 'E18', 'G18'].forEach(cell => ws6.getCell(cell).value = assistantProfTarget);
+      ['A19', 'C19', 'E19', 'G19'].forEach(cell => ws6.getCell(cell).value = associateProfTarget);
+
+      // Dynamic Faculty Grid
+      const facultyData = parseJSON(extRecord.extension_individual_data);
+      let currentRow = 25;
+
+      const facultyProfiles = await new Promise((resolve) => {
+        db.all(`SELECT user_id, position FROM user_profiles`, [], (err, rows) => resolve(rows || []));
+      });
+
+      allRegularFaculty.forEach(faculty => {
+        const profile = facultyProfiles.find(p => p.user_id === faculty.id);
+        const rank = profile?.position || 'Instructor';
+        
+        let targetValue = instructorTarget;
+        if (rank.includes('Assistant')) targetValue = assistantProfTarget;
+        else if (rank.includes('Associate')) targetValue = associateProfTarget;
+
+        const acc = facultyData[faculty.id] || { q1: 0, q2: 0, q3: 0, q4: 0 };
+
+        const row = ws6.getRow(currentRow);
+        row.getCell(1).value = faculty.name;
+        row.getCell(2).value = rank;
+        row.getCell(3).value = targetValue;
+        row.getCell(4).value = Number(acc.q1 || 0);
+        row.getCell(5).value = targetValue;
+        row.getCell(6).value = Number(acc.q2 || 0);
+        row.getCell(7).value = targetValue * 2;
+        row.getCell(8).value = Number(acc.q1 || 0) + Number(acc.q2 || 0);
+        
+        row.getCell(10).value = targetValue;
+        row.getCell(11).value = Number(acc.q3 || 0);
+        row.getCell(12).value = targetValue;
+        row.getCell(13).value = Number(acc.q4 || 0);
+        row.getCell(14).value = targetValue * 2;
+        row.getCell(15).value = Number(acc.q3 || 0) + Number(acc.q4 || 0);
+        
+        row.getCell(17).value = targetValue * 4;
+        row.getCell(18).value = Number(acc.q1 || 0) + Number(acc.q2 || 0) + Number(acc.q3 || 0) + Number(acc.q4 || 0);
+        currentRow++;
+      });
+
+      // Vertical Sums
+      const summaryRow = ws6.getRow(currentRow);
+      for (let col = 3; col <= 18; col++) {
+        if (col === 9 || col === 16) continue;
+        let sum = 0;
+        for (let r = 25; r < currentRow; r++) {
+          sum += Number(ws6.getRow(r).getCell(col).value) || 0;
+        }
+        summaryRow.getCell(col).value = sum;
+        summaryRow.getCell(col).font = { bold: true };
+      }
+    }
+  }
+
   // Data Mapping for Historical List of Extension (Sheet 7)
   const ws7 = workbook.worksheets[6];
   if (ws7 && historicalExtensionRecords.length > 0) {
