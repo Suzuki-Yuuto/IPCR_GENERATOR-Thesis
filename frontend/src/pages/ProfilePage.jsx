@@ -9,6 +9,7 @@ const ProfilePage = ({ user }) => {
     position: '',
     contact_number: '',
     notes: '',
+    is_regular_faculty: 1,
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -26,6 +27,7 @@ const ProfilePage = ({ user }) => {
           position: data.position || '',
           contact_number: data.contact_number || '',
           notes: data.notes || '',
+          is_regular_faculty: data.is_regular_faculty !== undefined ? data.is_regular_faculty : 1,
         });
         setProfileMeta({
           email: data.email || user.email || '',
@@ -40,6 +42,7 @@ const ProfilePage = ({ user }) => {
           position: '',
           contact_number: '',
           notes: '',
+          is_regular_faculty: user.is_regular_faculty !== undefined ? user.is_regular_faculty : 1,
         });
         setProfileMeta({
           email: user.email || '',
@@ -67,6 +70,16 @@ const ProfilePage = ({ user }) => {
       const data = await res.json();
       if (data.success) {
         setSaveStatus('ok');
+        const savedUserStr = sessionStorage.getItem('user');
+        if (savedUserStr) {
+          const savedUser = JSON.parse(savedUserStr);
+          savedUser.is_regular_faculty = formData.is_regular_faculty;
+          savedUser.name = formData.name;
+          savedUser.department = formData.department;
+          sessionStorage.setItem('user', JSON.stringify(savedUser));
+          // Mutate the active user prop object to immediately unlock UI views without reload
+          user.is_regular_faculty = formData.is_regular_faculty;
+        }
         setTimeout(() => setSaveStatus(null), 4000);
       } else {
         setSaveStatus('error');
@@ -165,6 +178,20 @@ const ProfilePage = ({ user }) => {
               placeholder="e.g. 0917-123-4567"
             />
           </div>
+        </div>
+
+        <div>
+          <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5">
+            <User className="w-4 h-4 text-gray-400" /> Regular Faculty?
+          </label>
+          <select
+            value={formData.is_regular_faculty}
+            onChange={e => handleChange('is_regular_faculty', parseInt(e.target.value, 10))}
+            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+          >
+            <option value={1}>Yes</option>
+            <option value={0}>No</option>
+          </select>
         </div>
 
         <div>
