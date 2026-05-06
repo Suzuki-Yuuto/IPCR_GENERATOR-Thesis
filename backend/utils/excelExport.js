@@ -333,15 +333,16 @@ async function exportManualAccomplishmentsToExcel(academicYear, semester) {
   if (ws5) {
     const researchRecords = records.filter(r => r.accomplishment_category === 'Research');
     
-    // Write global optionals from the first record that has them
-    const globalOpts = researchRecords.find(r => r.target_presentation != null) || researchRecords[0] || {};
+    // Write global targets from the LATEST record that has them
+    const researchGlobalRecords = researchRecords.filter(r => r.target_presentation != null || r.target_publication != null);
+    const globalOpts = researchGlobalRecords.sort((a, b) => b.id - a.id)[0] || {};
     
-    ws5.getCell('B2').value = globalOpts.target_presentation || 0;
-    ws5.getCell('B3').value = globalOpts.target_publication || 0;
-    ws5.getCell('B4').value = globalOpts.target_utilized || 0;
-    ws5.getCell('F2').value = globalOpts.acc_presentation || 0;
-    ws5.getCell('F3').value = globalOpts.acc_publication || 0;
-    ws5.getCell('F4').value = globalOpts.acc_utilized || 0;
+    ws5.getCell('B2').value = Number(globalOpts.target_presentation) || 0;
+    ws5.getCell('B3').value = Number(globalOpts.target_publication) || 0;
+    ws5.getCell('B4').value = Number(globalOpts.target_utilized) || 0;
+    ws5.getCell('F2').value = Number(globalOpts.acc_presentation) || 0;
+    ws5.getCell('F3').value = Number(globalOpts.acc_publication) || 0;
+    ws5.getCell('F4').value = Number(globalOpts.acc_utilized) || 0;
 
     // Apply styling to global targets
     ['B2', 'B3', 'B4', 'F2', 'F3', 'F4'].forEach(cellAddr => {

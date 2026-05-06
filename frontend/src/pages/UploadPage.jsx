@@ -137,6 +137,26 @@ const UploadPage = ({ user, uploadedFiles, isUploading, onFileUpload, selectedYe
     }
   }, [formData.accomplishment_category, history, isManualInput]);
 
+  useEffect(() => {
+    if (isManualInput && formData.accomplishment_category === 'Research' && history.length > 0) {
+      const resRecord = history.find(h => h.accomplishment_category === 'Research' && (h.target_presentation !== null || h.acc_presentation !== null));
+      if (resRecord) {
+        setFormData(prev => ({
+          ...prev,
+          target_presentation: resRecord.target_presentation ?? '',
+          acc_presentation: resRecord.acc_presentation ?? '',
+          target_publication: resRecord.target_publication ?? '',
+          acc_publication: resRecord.acc_publication ?? '',
+          target_utilized: resRecord.target_utilized ?? '',
+          acc_utilized: resRecord.acc_utilized ?? '',
+          admin_scopus: resRecord.admin_scopus ?? '',
+          admin_rg: resRecord.admin_rg ?? '',
+          admin_gs: resRecord.admin_gs ?? '',
+        }));
+      }
+    }
+  }, [formData.accomplishment_category, history, isManualInput]);
+
   const handleFileChange = (e) => {
     onFileUpload(e, selectedYear, selectedSemester);
   };
@@ -519,27 +539,27 @@ const UploadPage = ({ user, uploadedFiles, isUploading, onFileUpload, selectedYe
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Target Presentation</label>
-                    <input type="number" name="target_presentation" value={formData.target_presentation} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="0" />
+                    <input type="number" min="0" name="target_presentation" value={formData.target_presentation} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="0" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Acc. Presentation</label>
-                    <input type="number" name="acc_presentation" value={formData.acc_presentation} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="0" />
+                    <input type="number" min="0" name="acc_presentation" value={formData.acc_presentation} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="0" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Target Publication</label>
-                    <input type="number" name="target_publication" value={formData.target_publication} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="0" />
+                    <input type="number" min="0" name="target_publication" value={formData.target_publication} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="0" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Acc. Publication</label>
-                    <input type="number" name="acc_publication" value={formData.acc_publication} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="0" />
+                    <input type="number" min="0" name="acc_publication" value={formData.acc_publication} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="0" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Target Utilized</label>
-                    <input type="number" name="target_utilized" value={formData.target_utilized} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="0" />
+                    <input type="number" min="0" name="target_utilized" value={formData.target_utilized} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="0" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Acc. Utilized</label>
-                    <input type="number" name="acc_utilized" value={formData.acc_utilized} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="0" />
+                    <input type="number" min="0" name="acc_utilized" value={formData.acc_utilized} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="0" />
                   </div>
 
                   <div className="col-span-1 md:col-span-2 pt-4 border-t border-gray-200 mt-2">
@@ -570,25 +590,48 @@ const UploadPage = ({ user, uploadedFiles, isUploading, onFileUpload, selectedYe
                     <input type="number" name="stat_citations" value={formData.stat_citations} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="0" />
                   </div>
 
-                  {user?.role === 'admin' && (
-                    <>
-                      <div className="col-span-1 md:col-span-2 pt-4 border-t border-gray-200 mt-2">
-                        <h4 className="text-sm font-semibold text-blue-600 mb-3 uppercase tracking-wider">Admin Only: Global Citations</h4>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Scopus</label>
-                        <input type="number" name="admin_scopus" value={formData.admin_scopus} onChange={handleInputChange} className="w-full rounded-lg border-blue-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="0" />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">ResearchGate (RG)</label>
-                        <input type="number" name="admin_rg" value={formData.admin_rg} onChange={handleInputChange} className="w-full rounded-lg border-blue-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="0" />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Google Scholar (GS)</label>
-                        <input type="number" name="admin_gs" value={formData.admin_gs} onChange={handleInputChange} className="w-full rounded-lg border-blue-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="0" />
-                      </div>
-                    </>
-                  )}
+                  <div className="col-span-1 md:col-span-2 pt-4 border-t border-gray-200 mt-2">
+                    <h4 className="text-sm font-semibold text-blue-600 mb-3 uppercase tracking-wider">Global Citations (Department Summary)</h4>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Scopus</label>
+                    <input 
+                      type="number" 
+                      min="0"
+                      name="admin_scopus" 
+                      value={formData.admin_scopus} 
+                      onChange={handleInputChange} 
+                      disabled={user?.role !== 'admin'}
+                      className={`w-full rounded-lg border-blue-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border ${user?.role !== 'admin' ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}`} 
+                      placeholder="0" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">ResearchGate (RG)</label>
+                    <input 
+                      type="number" 
+                      min="0"
+                      name="admin_rg" 
+                      value={formData.admin_rg} 
+                      onChange={handleInputChange} 
+                      disabled={user?.role !== 'admin'}
+                      className={`w-full rounded-lg border-blue-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border ${user?.role !== 'admin' ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}`} 
+                      placeholder="0" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Google Scholar (GS)</label>
+                    <input 
+                      type="number" 
+                      min="0"
+                      name="admin_gs" 
+                      value={formData.admin_gs} 
+                      onChange={handleInputChange} 
+                      disabled={user?.role !== 'admin'}
+                      className={`w-full rounded-lg border-blue-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border ${user?.role !== 'admin' ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}`} 
+                      placeholder="0" 
+                    />
+                  </div>
                 </>
               )}
 

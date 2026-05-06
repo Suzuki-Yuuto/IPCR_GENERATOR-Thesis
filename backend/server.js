@@ -369,12 +369,22 @@ app.post("/api/accomplishments/manual", upload.single("file"), async (req, res) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [userId, title, date, venue, scope, hours, sponsoredBy, driveLink, researchRelated, academicYear, semester,
         accomplishment_category || 'Seminars, Conferences, and Training',
-        target_presentation || null, target_publication || null, target_utilized || null,
-        acc_presentation || null, acc_publication || null, acc_utilized || null,
-        stat_proposal || null, stat_completed || null, stat_presented || null,
-        stat_ip_rights || null, stat_utilized || null, stat_citations || null,
+        Math.max(0, Number(target_presentation)) || null,
+        Math.max(0, Number(target_publication)) || null,
+        Math.max(0, Number(target_utilized)) || null,
+        Math.max(0, Number(acc_presentation)) || null,
+        Math.max(0, Number(acc_publication)) || null,
+        Math.max(0, Number(acc_utilized)) || null,
+        Math.max(0, Number(stat_proposal)) || null,
+        Math.max(0, Number(stat_completed)) || null,
+        Math.max(0, Number(stat_presented)) || null,
+        Math.max(0, Number(stat_ip_rights)) || null,
+        Math.max(0, Number(stat_utilized)) || null,
+        Math.max(0, Number(stat_citations)) || null,
         extension_personnel || null, beneficiaries || null, budget_allocation || null, evaluation || null,
-        admin_scopus || null, admin_rg || null, admin_gs || null,
+        admin_scopus ? Math.max(0, Number(admin_scopus)) : null,
+        admin_rg ? Math.max(0, Number(admin_rg)) : null,
+        admin_gs ? Math.max(0, Number(admin_gs)) : null,
         totalExtensionTarget || null, active_partnerships_data || null, trainees_accomplishment_data || null, extension_programs_data || null, extension_individual_data || null],
       async function (err) {
         if (err) {
@@ -420,7 +430,7 @@ app.get("/api/accomplishments/history/:userId", async (req, res) => {
 
   db.all(
     `SELECT * FROM faculty_accomplishments 
-     WHERE (user_id = ? OR accomplishment_category = 'Extension') 
+     WHERE (user_id = ? OR accomplishment_category = 'Extension' OR accomplishment_category = 'Research') 
      AND academic_year = ? AND semester = ? 
      ORDER BY created_at DESC`,
     [userId, academicYear, semester],
