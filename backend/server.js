@@ -742,22 +742,97 @@ app.get("/api/admin/ipcr", async (req, res) => {
   const academicYear = req.query.year || active.academic_year;
   const semester = req.query.semester || active.semester;
 
-  const query = `
-    SELECT
-      u.id, u.name, u.department, u.email,
-      COUNT(DISTINCT d.id) as document_count,
-      AVG(ir.rating) as avg_rating
-    FROM users u
-    LEFT JOIN documents d
-      ON u.id = d.user_id AND d.academic_year = ? AND d.semester = ?
-    LEFT JOIN ipcr_records ir
-      ON u.id = ir.user_id AND ir.academic_year = ? AND ir.semester = ?
-    WHERE u.role = 'professor'
-    GROUP BY u.id
-  `;
-  db.all(query, [academicYear, semester, academicYear, semester], (err, rows) =>
-    err ? res.status(500).json({ error: err.message }) : res.json(rows)
-  );
+  try {
+    const query = `
+      SELECT
+        u.id, u.name, u.department, u.email,
+        COUNT(DISTINCT d.id) as document_count
+      FROM users u
+      LEFT JOIN documents d
+        ON u.id = d.user_id AND d.academic_year = ? AND d.semester = ?
+      WHERE u.role = 'professor'
+      GROUP BY u.id
+    `;
+    
+    const usersRows = await new Promise((resolve, reject) => {
+      db.all(query, [academicYear, semester], (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      });
+    });
+
+    const { rowToTargets } = require('./routes/targets');
+
+    const results = await Promise.all(usersRows.map(async (user) => {
+      const userTargetRow = await new Promise((resolve, reject) =>
+        db.get(
+          `SELECT * FROM user_targets WHERE user_id = ? AND academic_year = ? AND semester = ?`,
+          [user.id, academicYear, semester],
+          (err, row) => (err ? reject(err) : resolve(row))
+        )
+      );
+      const userTargets = rowToTargets(userTargetRow);
+      const hasTargets = !!userTargetRow;
+
+      const ipcrData = {};
+      Object.keys(categoryMap).forEach((key) => {
+        ipcrData[key] = {
+          target: userTargets ? (userTargets[key] ?? 5) : 5,
+          accomplished: 0,
+          submitted: null,
+          hasTargets,
+        };
+      });
+      if (!ipcrData.accomplishmentReportSupport) {
+        ipcrData.accomplishmentReportSupport = {
+          target: userTargets ? (userTargets.accomplishmentReportSupport ?? 5) : 5,
+          accomplished: 0,
+          submitted: null,
+          hasTargets,
+        };
+      }
+
+      const rows = await new Promise((resolve, reject) =>
+        db.all(
+          `SELECT category, target, accomplished, rating, submission_date
+           FROM ipcr_records
+           WHERE user_id = ? AND (academic_year = ? OR academic_year IS NULL)
+             AND (semester = ? OR semester IS NULL)
+           ORDER BY COALESCE(academic_year,'') DESC, COALESCE(semester,'') DESC`,
+          [user.id, academicYear, semester],
+          (err, r) => (err ? reject(err) : resolve(r))
+        )
+      );
+
+      const byCategory = {};
+      rows.forEach((row) => {
+        const key = Object.keys(categoryMap).find((k) => categoryMap[k] === row.category);
+        if (key) {
+          const hasRating = row.rating != null && Number(row.rating) > 0;
+          if (!byCategory[key] || hasRating) byCategory[key] = row;
+        }
+      });
+      Object.entries(byCategory).forEach(([key, row]) => {
+        ipcrData[key] = {
+          target: ipcrData[key].target,
+          accomplished: row.accomplished,
+          submitted: row.submission_date,
+          rating: row.rating != null ? Number(row.rating) : null,
+          hasTargets,
+        };
+      });
+
+      return {
+        ...user,
+        ipcrData
+      };
+    }));
+
+    res.json(results);
+  } catch (err) {
+    console.error("GET /api/admin/ipcr error:", err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 /**
