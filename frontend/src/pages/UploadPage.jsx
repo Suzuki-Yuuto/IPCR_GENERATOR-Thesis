@@ -322,13 +322,13 @@ const UploadPage = ({ user, uploadedFiles, isUploading, uploadProgress, processe
 
       {(isManualInput && user?.is_regular_faculty !== 0) ? (
         <div className="space-y-8">
-          <form onSubmit={handleManualSubmit} className="space-y-5 max-w-2xl mx-auto bg-gray-50 p-8 rounded-2xl border border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900 border-b border-gray-200 pb-3">Faculty Accomplishment Details</h3>
+          <form onSubmit={handleManualSubmit} className="space-y-5 max-w-2xl mx-auto bg-white p-8 rounded-2xl border border-gray-200 shadow-sm">
+            <h3 className="text-base font-medium text-gray-900 border-b border-gray-100 pb-3">Faculty Accomplishment Details</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="col-span-1 md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Accomplishment Category *</label>
-                <select required name="accomplishment_category" value={formData.accomplishment_category} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border bg-white">
+                <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">Accomplishment Category *</label>
+                <select required name="accomplishment_category" value={formData.accomplishment_category} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border bg-white">
                   <option value="Seminars, Conferences, and Training">Seminars, Conferences, and Training</option>
                   <option value="Research">Research</option>
                   <option value="Extension">Extension</option>
@@ -339,18 +339,18 @@ const UploadPage = ({ user, uploadedFiles, isUploading, uploadProgress, processe
               {formData.accomplishment_category === 'Seminars, Conferences, and Training' && (
                 <>
                   <div className="col-span-1 md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
-                    <input required type="text" name="title" value={formData.title} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="Enter title..." />
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">Title *</label>
+                    <input required type="text" name="title" value={formData.title} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border" placeholder="Enter title..." />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
-                    <input required type="date" max={new Date().toISOString().split('T')[0]} name="date" value={formData.date} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" />
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">Date *</label>
+                    <input required type="date" max={new Date().toISOString().split('T')[0]} name="date" value={formData.date} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border" />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Scope *</label>
-                    <select required name="scope" value={formData.scope} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border bg-white">
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">Scope *</label>
+                    <select required name="scope" value={formData.scope} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border bg-white">
                       <option value="Local">Local</option>
                       <option value="National">National</option>
                       <option value="Regional">Regional</option>
@@ -359,51 +359,51 @@ const UploadPage = ({ user, uploadedFiles, isUploading, uploadProgress, processe
                   </div>
 
                   <div className="col-span-1 md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Conducted by / Venue *</label>
-                    <input required type="text" name="venue" value={formData.venue} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="Enter venue..." />
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">Conducted by / Venue *</label>
+                    <input required type="text" name="venue" value={formData.venue} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border" placeholder="Enter venue..." />
                   </div>
 
                   <div className="col-span-1 md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Participants</label>
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">Participants</label>
                     <input type="text" readOnly value={user.name} className="w-full rounded-lg border-gray-300 bg-gray-200 text-gray-600 shadow-sm sm:text-sm p-2.5 border cursor-not-allowed" />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Number of Hours *</label>
-                    <input required type="number" min="1" name="hours" value={formData.hours} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="e.g. 8" />
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">Number of Hours *</label>
+                    <input required type="number" min="1" name="hours" value={formData.hours} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border" placeholder="e.g. 8" />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Research Related *</label>
-                    <select required name="researchRelated" value={formData.researchRelated} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border bg-white">
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">Research Related *</label>
+                    <select required name="researchRelated" value={formData.researchRelated} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border bg-white">
                       <option value="Yes">Yes</option>
                       <option value="No">No</option>
                     </select>
                   </div>
 
                   <div className="col-span-1 md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Conducted/Sponsored by *</label>
-                    <input required type="text" name="sponsoredBy" value={formData.sponsoredBy} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="Sponsor name..." />
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">Conducted/Sponsored by *</label>
+                    <input required type="text" name="sponsoredBy" value={formData.sponsoredBy} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border" placeholder="Sponsor name..." />
                   </div>
                 </>
               )}
 
               {formData.accomplishment_category === 'Extension' && (
                 <>
-                  <div className="col-span-1 md:col-span-2 p-4 bg-blue-50 rounded-2xl border border-blue-100">
-                    <h3 className="text-sm font-semibold text-blue-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <div className="col-span-1 md:col-span-2 p-5 bg-gray-50 rounded-2xl border border-gray-200">
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
                        <FileText className="w-4 h-4" /> Global Extension Targets (Sheet 6)
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-bold text-blue-600 mb-1 uppercase">Extension Target</label>
+                        <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide uppercase">Extension Target</label>
                         <input 
                           type="number" 
                           name="ext_total_target" 
                           value={formData.ext_total_target} 
                           onChange={handleInputChange} 
                           disabled={user?.role !== 'admin'}
-                          className={`w-full rounded-lg border-blue-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border ${user?.role !== 'admin' ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}`}
+                          className={`w-full rounded-lg border-gray-200 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border ${user?.role !== 'admin' ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}`}
                           min="0"
                           required
                         />
@@ -478,7 +478,7 @@ const UploadPage = ({ user, uploadedFiles, isUploading, uploadProgress, processe
                     </table>
                   </div>
 
-                  <div className="col-span-1 md:col-span-2 pt-6 border-t border-gray-200 mt-4">
+                  <div className="col-span-1 md:col-span-2 pt-6 border-t border-gray-100 mt-4">
                     <h4 className="text-xs font-bold text-gray-700 mb-4 uppercase tracking-widest flex items-center gap-2">
                        <Clock className="w-4 h-4" /> Individual Faculty Grid
                     </h4>
@@ -534,67 +534,67 @@ const UploadPage = ({ user, uploadedFiles, isUploading, uploadProgress, processe
 
               {formData.accomplishment_category === 'Research' && (
                 <>
-                  <div className="col-span-1 md:col-span-2 pt-4 border-t border-gray-200 mt-2">
-                    <h4 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider">Research: Global Targets & Accomplishments</h4>
+                  <div className="col-span-1 md:col-span-2 pt-4 border-t border-gray-100 mt-2">
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">Research: Global Targets & Accomplishments</h4>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Target Presentation</label>
-                    <input type="number" min="0" name="target_presentation" value={formData.target_presentation} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="0" />
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">Target Presentation</label>
+                    <input type="number" min="0" name="target_presentation" value={formData.target_presentation} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border" placeholder="0" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Acc. Presentation</label>
-                    <input type="number" min="0" name="acc_presentation" value={formData.acc_presentation} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="0" />
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">Acc. Presentation</label>
+                    <input type="number" min="0" name="acc_presentation" value={formData.acc_presentation} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border" placeholder="0" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Target Publication</label>
-                    <input type="number" min="0" name="target_publication" value={formData.target_publication} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="0" />
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">Target Publication</label>
+                    <input type="number" min="0" name="target_publication" value={formData.target_publication} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border" placeholder="0" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Acc. Publication</label>
-                    <input type="number" min="0" name="acc_publication" value={formData.acc_publication} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="0" />
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">Acc. Publication</label>
+                    <input type="number" min="0" name="acc_publication" value={formData.acc_publication} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border" placeholder="0" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Target Utilized</label>
-                    <input type="number" min="0" name="target_utilized" value={formData.target_utilized} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="0" />
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">Target Utilized</label>
+                    <input type="number" min="0" name="target_utilized" value={formData.target_utilized} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border" placeholder="0" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Acc. Utilized</label>
-                    <input type="number" min="0" name="acc_utilized" value={formData.acc_utilized} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="0" />
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">Acc. Utilized</label>
+                    <input type="number" min="0" name="acc_utilized" value={formData.acc_utilized} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border" placeholder="0" />
                   </div>
 
-                  <div className="col-span-1 md:col-span-2 pt-4 border-t border-gray-200 mt-2">
-                    <h4 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider">Research: Personal Statistics</h4>
+                  <div className="col-span-1 md:col-span-2 pt-4 border-t border-gray-100 mt-2">
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">Research: Personal Statistics</h4>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Proposal Submitted</label>
-                    <input type="number" name="stat_proposal" value={formData.stat_proposal} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="0" />
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">Proposal Submitted</label>
+                    <input type="number" name="stat_proposal" value={formData.stat_proposal} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border" placeholder="0" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Completed Timeframe</label>
-                    <input type="number" name="stat_completed" value={formData.stat_completed} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="0" />
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">Completed Timeframe</label>
+                    <input type="number" name="stat_completed" value={formData.stat_completed} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border" placeholder="0" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Presented</label>
-                    <input type="number" name="stat_presented" value={formData.stat_presented} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="0" />
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">Presented</label>
+                    <input type="number" name="stat_presented" value={formData.stat_presented} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border" placeholder="0" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">IP Rights</label>
-                    <input type="number" name="stat_ip_rights" value={formData.stat_ip_rights} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="0" />
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">IP Rights</label>
+                    <input type="number" name="stat_ip_rights" value={formData.stat_ip_rights} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border" placeholder="0" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Utilized / Deployed</label>
-                    <input type="number" name="stat_utilized" value={formData.stat_utilized} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="0" />
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">Utilized / Deployed</label>
+                    <input type="number" name="stat_utilized" value={formData.stat_utilized} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border" placeholder="0" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Citations</label>
-                    <input type="number" name="stat_citations" value={formData.stat_citations} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="0" />
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">Citations</label>
+                    <input type="number" name="stat_citations" value={formData.stat_citations} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border" placeholder="0" />
                   </div>
 
-                  <div className="col-span-1 md:col-span-2 pt-4 border-t border-gray-200 mt-2">
-                    <h4 className="text-sm font-semibold text-blue-600 mb-3 uppercase tracking-wider">Global Citations (Department Summary)</h4>
+                  <div className="col-span-1 md:col-span-2 pt-4 border-t border-gray-100 mt-2">
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">Global Citations (Department Summary)</h4>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Scopus</label>
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">Scopus</label>
                     <input 
                       type="number" 
                       min="0"
@@ -602,12 +602,12 @@ const UploadPage = ({ user, uploadedFiles, isUploading, uploadProgress, processe
                       value={formData.admin_scopus} 
                       onChange={handleInputChange} 
                       disabled={user?.role !== 'admin'}
-                      className={`w-full rounded-lg border-blue-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border ${user?.role !== 'admin' ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}`} 
+                      className={`w-full rounded-lg border-gray-200 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border ${user?.role !== 'admin' ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}`} 
                       placeholder="0" 
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">ResearchGate (RG)</label>
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">ResearchGate (RG)</label>
                     <input 
                       type="number" 
                       min="0"
@@ -615,12 +615,12 @@ const UploadPage = ({ user, uploadedFiles, isUploading, uploadProgress, processe
                       value={formData.admin_rg} 
                       onChange={handleInputChange} 
                       disabled={user?.role !== 'admin'}
-                      className={`w-full rounded-lg border-blue-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border ${user?.role !== 'admin' ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}`} 
+                      className={`w-full rounded-lg border-gray-200 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border ${user?.role !== 'admin' ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}`} 
                       placeholder="0" 
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Google Scholar (GS)</label>
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">Google Scholar (GS)</label>
                     <input 
                       type="number" 
                       min="0"
@@ -628,7 +628,7 @@ const UploadPage = ({ user, uploadedFiles, isUploading, uploadProgress, processe
                       value={formData.admin_gs} 
                       onChange={handleInputChange} 
                       disabled={user?.role !== 'admin'}
-                      className={`w-full rounded-lg border-blue-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border ${user?.role !== 'admin' ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}`} 
+                      className={`w-full rounded-lg border-gray-200 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border ${user?.role !== 'admin' ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}`} 
                       placeholder="0" 
                     />
                   </div>
@@ -638,69 +638,69 @@ const UploadPage = ({ user, uploadedFiles, isUploading, uploadProgress, processe
               {formData.accomplishment_category === 'List of Extension' && (
                 <>
                   <div className="col-span-1 md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Title of Projects *</label>
-                    <input required type="text" name="title" value={formData.title} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="Enter title..." />
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">Title of Projects *</label>
+                    <input required type="text" name="title" value={formData.title} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border" placeholder="Enter title..." />
                   </div>
 
                   <div className="col-span-1 md:col-span-2 flex items-center gap-2 mb-2">
-                    <input type="checkbox" name="is_multiple_days" checked={formData.is_multiple_days} onChange={handleInputChange} className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                    <input type="checkbox" name="is_multiple_days" checked={formData.is_multiple_days} onChange={handleInputChange} className="rounded border-gray-300 text-gray-700 focus:ring-gray-400" />
                     <label className="text-sm font-medium text-gray-700">Multiple Days?</label>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{formData.is_multiple_days ? 'Start Date *' : 'Date *'}</label>
-                    <input required type="date" name="date" value={formData.date} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" />
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">{formData.is_multiple_days ? 'Start Date *' : 'Date *'}</label>
+                    <input required type="date" name="date" value={formData.date} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border" />
                   </div>
 
                   {formData.is_multiple_days && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">End Date *</label>
-                      <input required type="date" name="end_date" value={formData.end_date} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" />
+                      <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">End Date *</label>
+                      <input required type="date" name="end_date" value={formData.end_date} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border" />
                     </div>
                   )}
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Beneficiaries (Count) *</label>
-                    <input required type="number" name="beneficiaries_count" value={formData.beneficiaries_count} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="e.g. 50" />
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">Beneficiaries (Count) *</label>
+                    <input required type="number" name="beneficiaries_count" value={formData.beneficiaries_count} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border" placeholder="e.g. 50" />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Beneficiaries (Type/Name) *</label>
-                    <input required type="text" name="beneficiaries_type" value={formData.beneficiaries_type} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="e.g. Students" />
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">Beneficiaries (Type/Name) *</label>
+                    <input required type="text" name="beneficiaries_type" value={formData.beneficiaries_type} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border" placeholder="e.g. Students" />
                   </div>
 
                   <div className="col-span-1 md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Location *</label>
-                    <input required type="text" name="location" value={formData.location} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="Enter location..." />
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">Location *</label>
+                    <input required type="text" name="location" value={formData.location} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border" placeholder="Enter location..." />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Budget Allocation</label>
-                    <input type="text" name="budget_allocation" value={formData.budget_allocation} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="Optional..." />
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">Budget Allocation</label>
+                    <input type="text" name="budget_allocation" value={formData.budget_allocation} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border" placeholder="Optional..." />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">References (GDrive Link)</label>
-                    <input type="text" name="references" value={formData.references} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="Optional link..." />
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">References (GDrive Link)</label>
+                    <input type="text" name="references" value={formData.references} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border" placeholder="Optional link..." />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Evaluation Score *</label>
-                    <input required type="number" step="0.1" min="0" max="5" name="evaluation" value={formData.evaluation} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border" placeholder="e.g. 4.5" />
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide">Evaluation Score *</label>
+                    <input required type="number" step="0.1" min="0" max="5" name="evaluation" value={formData.evaluation} onChange={handleInputChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border" placeholder="e.g. 4.5" />
                   </div>
 
                   {/* Extensionists UI */}
-                  <div className="col-span-1 md:col-span-2 pt-4 border-t border-gray-200 mt-2">
+                  <div className="col-span-1 md:col-span-2 pt-4 border-t border-gray-100 mt-2">
                     <div className="flex justify-between items-center mb-4">
-                      <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Extensionists *</h4>
-                      <button type="button" onClick={addRoleGroup} className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1">
+                      <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-widest">Extensionists *</h4>
+                      <button type="button" onClick={addRoleGroup} className="text-sm font-medium text-gray-900 hover:text-black flex items-center gap-1 underline underline-offset-4">
                         <Plus className="w-4 h-4" /> Add Role Group
                       </button>
                     </div>
 
                     <div className="space-y-4">
                       {extensionists.map((group) => (
-                        <div key={group.id} className="p-4 bg-white border border-gray-200 rounded-xl shadow-sm">
+                        <div key={group.id} className="p-4 bg-gray-50/50 border border-gray-200 rounded-xl shadow-sm">
                           <div className="flex justify-between gap-3 mb-3">
                             <input 
                               type="text" 
@@ -708,14 +708,14 @@ const UploadPage = ({ user, uploadedFiles, isUploading, uploadProgress, processe
                               value={group.role} 
                               onChange={(e) => updateRoleName(group.id, e.target.value)} 
                               placeholder="Role Name (e.g. Project Head)" 
-                              className="w-full font-medium text-gray-900 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border" 
+                              className="w-full font-medium text-gray-900 rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2 border" 
                             />
                             <button type="button" onClick={() => removeRoleGroup(group.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
                           
-                          <div className="space-y-2 pl-2 border-l-2 border-blue-100 ml-1">
+                          <div className="space-y-2 pl-2 border-l-2 border-gray-200 ml-1">
                             {group.members.map((member, mIdx) => (
                               <div key={mIdx} className="flex gap-2 items-center">
                                 <div className="flex items-center gap-2 mr-2">
@@ -723,7 +723,7 @@ const UploadPage = ({ user, uploadedFiles, isUploading, uploadProgress, processe
                                     type="checkbox"
                                     checked={member.isRegularFaculty}
                                     onChange={(e) => updateMember(group.id, mIdx, 'isRegularFaculty', e.target.checked)}
-                                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    className="rounded border-gray-300 text-gray-700 focus:ring-gray-400"
                                   />
                                   <label className="text-xs font-medium text-gray-600 whitespace-nowrap">Is Regular Faculty?</label>
                                 </div>
@@ -732,7 +732,7 @@ const UploadPage = ({ user, uploadedFiles, isUploading, uploadProgress, processe
                                     required
                                     value={member.userId || ''}
                                     onChange={(e) => updateMember(group.id, mIdx, 'userId', e.target.value)}
-                                    className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-1.5 border bg-white"
+                                    className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-1.5 border bg-white"
                                   >
                                     <option value="" disabled>Select Faculty</option>
                                     {regularFaculty.map(f => (
@@ -746,7 +746,7 @@ const UploadPage = ({ user, uploadedFiles, isUploading, uploadProgress, processe
                                     value={member.name} 
                                     onChange={(e) => updateMember(group.id, mIdx, 'name', e.target.value)} 
                                     placeholder="Person's Name" 
-                                    className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-1.5 border" 
+                                    className="w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-1.5 border" 
                                   />
                                 )}
                                 {group.members.length > 1 && (
@@ -768,40 +768,48 @@ const UploadPage = ({ user, uploadedFiles, isUploading, uploadProgress, processe
               )}
 
               {formData.accomplishment_category === 'Seminars, Conferences, and Training' && (
-                <div className="col-span-1 md:col-span-2 pt-4 border-t border-gray-200 mt-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">PDF Certificate Attachment *</label>
-                  <input required type="file" accept=".pdf" name="file" onChange={handleManualFileChange} className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border bg-white" />
+                <div className="col-span-1 md:col-span-2 pt-4 border-t border-gray-100 mt-2">
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-widest mb-2">PDF Certificate Attachment *</label>
+                  <input required type="file" accept=".pdf" name="file" onChange={handleManualFileChange} className="w-full rounded-xl border-gray-200 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm p-2.5 border bg-white text-gray-700 file:mr-4 file:py-1.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-gray-900 file:text-white hover:file:bg-black cursor-pointer" />
                 </div>
               )}
             </div>
             
             <div className="pt-4 flex justify-end">
-              <button type="submit" disabled={isSubmitting} className={`px-6 py-2.5 rounded-lg text-sm font-medium text-white transition-all ${isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}>
-                {isSubmitting ? 'Saving...' : 'Submit Accomplishment'}
+              <button type="submit" disabled={isSubmitting} className={`px-6 py-2.5 rounded-lg text-sm font-medium text-white transition-all inline-flex items-center gap-2 ${isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-gray-900 hover:bg-black'}`}>
+                {isSubmitting ? (
+                  <><div className="w-4 h-4 rounded-full border-2 border-gray-300 border-t-white animate-spin" /> Saving...</>
+                ) : 'Submit'}
               </button>
             </div>
           </form>
 
           <div className="max-w-2xl mx-auto">
-            <h3 className="text-lg font-medium text-gray-900 border-b border-gray-200 pb-3 mb-4 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-gray-500" />
+            <h3 className="text-sm font-semibold text-gray-900 mb-4 px-2 tracking-wide uppercase flex items-center gap-2">
+              <Clock className="w-4 h-4 text-gray-400" />
               Your Manual Submissions
             </h3>
             {isLoadingHistory ? (
-              <div className="text-center text-sm text-gray-500 py-4">Loading history...</div>
+              <div className="text-center text-sm text-gray-400 py-8">Loading history...</div>
             ) : history.length > 0 ? (
               <div className="space-y-3">
                 {history.map(item => (
-                  <div key={item.id} className="p-4 bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-                    <div>
-                      <p className="font-medium text-gray-900">{item.title}</p>
-                      <div className="flex gap-2 items-center text-xs text-gray-500 mt-1">
-                        <span className="bg-gray-100 px-2 py-0.5 rounded">{item.accomplishment_category || 'General'}</span>
-                        <span>{new Date(item.date).toLocaleDateString()}</span>
+                  <div key={item.id} className="group flex items-center justify-between py-4 px-5 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-blue-100 transition-all">
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                      <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                        <FileText className="w-4 h-4 text-gray-500" />
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">{item.title}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{item.accomplishment_category || 'General'}</span>
+                          <span className="text-gray-300 text-xs">•</span>
+                          <span className="text-xs text-gray-500">{new Date(item.date).toLocaleDateString()}</span>
+                        </div>
                       </div>
                     </div>
                     {item.gdrive_link && (
-                      <a href={item.gdrive_link} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-sm hover:underline shrink-0">
+                      <a href={item.gdrive_link} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors underline underline-offset-4 shrink-0 pl-4">
                         View Reference
                       </a>
                     )}
@@ -809,8 +817,8 @@ const UploadPage = ({ user, uploadedFiles, isUploading, uploadProgress, processe
                 ))}
               </div>
             ) : (
-              <div className="text-center text-sm text-gray-500 py-4 bg-gray-50 rounded-xl border border-gray-200">
-                No manual submissions for this period.
+              <div className="text-center text-sm text-gray-400 py-12 border-t border-gray-100">
+                No manual submissions for this period yet.
               </div>
             )}
           </div>
@@ -854,7 +862,7 @@ const UploadPage = ({ user, uploadedFiles, isUploading, uploadProgress, processe
                 <div className="mt-6 w-full max-w-sm mx-auto">
                   <div className="bg-gray-200 rounded-full h-2.5 overflow-hidden border border-gray-300">
                     <div 
-                      className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-out" 
+                      className="bg-gray-600 h-2.5 rounded-full transition-all duration-300 ease-out" 
                       style={{ width: `${uploadProgress}%` }}
                     ></div>
                   </div>
