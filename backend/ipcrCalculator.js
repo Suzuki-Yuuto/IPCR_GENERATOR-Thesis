@@ -9,7 +9,13 @@ const DEFAULT_TARGETS = {
   courseGuide: DefaultTarget.courseGuide,
   slm: DefaultTarget.slm,
   tos: DefaultTarget.tos,
-  gradingSheet: DefaultTarget.gradingSheet
+  gradingSheet: DefaultTarget.gradingSheet,
+  testQuestions: DefaultTarget.testQuestions,
+  attendanceSheet: DefaultTarget.attendanceSheet,
+  classRecord: DefaultTarget.classRecord,
+  classroomObservation: DefaultTarget.classroomObservation,
+  evaluationOfTeachingEffectiveness: DefaultTarget.evaluationOfTeachingEffectiveness,
+  accomplishmentReport: DefaultTarget.accomplishmentReport,
 };
 
 const WEIGHTS = {
@@ -17,7 +23,13 @@ const WEIGHTS = {
   courseGuide: 0.5,
   slm: 0.5,
   tos: 0.5,
-  gradingSheet: 0.5
+  gradingSheet: 0.5,
+  testQuestions: 0.5,
+  attendanceSheet: 0.5,
+  classRecord: 0.5,
+  classroomObservation: 0.5,
+  evaluationOfTeachingEffectiveness: 0.5,
+  accomplishmentReport: 0.5
 };
 
 /**

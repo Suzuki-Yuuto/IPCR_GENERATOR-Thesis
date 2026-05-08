@@ -17,6 +17,12 @@ const categoryMap = {
   slm: "SLM",
   gradingSheet: "Grading Sheet",
   tos: "TOS",
+  testQuestions: "Test Questions",
+  attendanceSheet: "Attendance Sheet",
+  classRecord: "Class Record",
+  classroomObservation: "Classroom Observation",
+  evaluationOfTeachingEffectiveness: "Evaluation of Teaching Effectiveness",
+  accomplishmentReport: "Accomplishment Report",
 };
 
 // Reverse map (DB name → key) for computeCategory
@@ -26,6 +32,12 @@ const categoryKeyMap = {
   SLM: "slm",
   "Grading Sheet": "gradingSheet",
   TOS: "tos",
+  "Test Questions": "testQuestions",
+  "Attendance Sheet": "attendanceSheet",
+  "Class Record": "classRecord",
+  "Classroom Observation": "classroomObservation",
+  "Evaluation of Teaching Effectiveness": "evaluationOfTeachingEffectiveness",
+  "Accomplishment Report": "accomplishmentReport",
 };
 
 /**
