@@ -47,6 +47,9 @@ const App = () => {
   const [uploadedFiles,  setUploadedFiles]  = useState([]);
   const [adminData,      setAdminData]      = useState([]);
   const [isUploading,    setIsUploading]    = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [processedFiles, setProcessedFiles] = useState(0);
+  const [totalFiles,     setTotalFiles]     = useState(0);
 
   // ── API helpers ──────────────────────────────────────────────────────────
 
@@ -192,32 +195,48 @@ const App = () => {
     const uploadSem  = semester || selectedSemester;
 
     setIsUploading(true);
-    const formData = new FormData();
-    files.forEach(file => formData.append('files', file));
-    formData.append('userId', user.id);
-    formData.append('year',     uploadYear);
-    formData.append('semester', uploadSem);
-    formData.append('facultyName', user.name || 'Faculty');
-    if (user.tokens) formData.append('tokens', JSON.stringify(user.tokens));
+    setUploadProgress(0);
+    setProcessedFiles(0);
+    setTotalFiles(files.length);
 
-    try {
-      const res  = await fetch(`${API_URL}/documents/upload`, { method: 'POST', body: formData });
-      const data = await res.json();
-      if (data.success) {
-        const driveUploaded = data.results.filter(r => r.driveUploaded).length;
-        alert(
-          `✅ Successfully uploaded ${data.results.length} file(s)\n` +
-          `${driveUploaded > 0 ? `📁 ${driveUploaded} uploaded to Google Drive` : '⚠️ Google Drive upload unavailable'}`
-        );
-        fetchIPCRData(user.id, uploadYear, uploadSem);
-        fetchDocuments(user.id, uploadYear, uploadSem);
+    let driveUploadedCount = 0;
+    let successfulUploads = 0;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const formData = new FormData();
+      formData.append('files', file);
+      formData.append('userId', user.id);
+      formData.append('year', uploadYear);
+      formData.append('semester', uploadSem);
+      formData.append('facultyName', user.name || 'Faculty');
+      if (user.tokens) formData.append('tokens', JSON.stringify(user.tokens));
+
+      try {
+        const res = await fetch(`${API_URL}/documents/upload`, { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.success) {
+           successfulUploads += data.results.length;
+           driveUploadedCount += data.results.filter(r => r.driveUploaded).length;
+        } else {
+           console.error('Upload failed for file:', file.name, data.error);
+        }
+      } catch (error) {
+        console.error('Upload error for file', file.name, error);
       }
-    } catch (error) {
-      console.error('Upload error:', error);
-      alert('❌ Upload failed: ' + error.message);
-    } finally {
-      setIsUploading(false);
+
+      setProcessedFiles(i + 1);
+      setUploadProgress(Math.round(((i + 1) / files.length) * 100));
     }
+
+    setIsUploading(false);
+
+    alert(
+      `✅ Successfully classified & uploaded ${successfulUploads} file(s)\n` +
+      `${driveUploadedCount > 0 ? `📁 ${driveUploadedCount} uploaded to Google Drive` : '⚠️ Google Drive upload unavailable'}`
+    );
+    fetchIPCRData(user.id, uploadYear, uploadSem);
+    fetchDocuments(user.id, uploadYear, uploadSem);
   };
 
   const handleLogout = () => {
@@ -277,6 +296,9 @@ const App = () => {
         user={user}
         uploadedFiles={uploadedFiles}
         isUploading={isUploading}
+        uploadProgress={uploadProgress}
+        processedFiles={processedFiles}
+        totalFiles={totalFiles}
         onFileUpload={handleFileUpload}
         selectedYear={selectedYear}
         selectedSemester={selectedSemester}

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Upload, FileText, CheckCircle, Clock, Plus, Trash2 } from 'lucide-react';
 import { API_URL } from '../constants';
 
-const UploadPage = ({ user, uploadedFiles, isUploading, onFileUpload, selectedYear, selectedSemester, onManualSubmitSuccess }) => {
+const UploadPage = ({ user, uploadedFiles, isUploading, uploadProgress, processedFiles, totalFiles, onFileUpload, selectedYear, selectedSemester, onManualSubmitSuccess }) => {
   const [isManualInput, setIsManualInput] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [history, setHistory] = useState([]);
@@ -843,12 +843,24 @@ const UploadPage = ({ user, uploadedFiles, isUploading, onFileUpload, selectedYe
                     {isUploading ? (
                       <>
                         <div className="w-4 h-4 rounded-full border-2 border-gray-300 border-t-gray-500 animate-spin" />
-                        Processing...
+                        Classifying... {processedFiles} / {totalFiles}
                       </>
                     ) : 'Browse Files'}
                   </span>
                 </label>
               </div>
+
+              {isUploading && (
+                <div className="mt-6 w-full max-w-sm mx-auto">
+                  <div className="bg-gray-200 rounded-full h-2.5 overflow-hidden border border-gray-300">
+                    <div 
+                      className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-out" 
+                      style={{ width: `${uploadProgress}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2 font-medium">Classifying files... ({processedFiles} / {totalFiles})</p>
+                </div>
+              )}
             </div>
           </div>
 
